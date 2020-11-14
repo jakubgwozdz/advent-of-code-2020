@@ -1,14 +1,10 @@
-import advent2020.createUI
-import kotlinx.browser.document
 import kotlinx.browser.window
 
-val funfunfun = ::createUI
-
+/**
+ * poor man's setup as I don't know how to export that better
+ */
 fun main() {
-    val day = Regex("(.*/)?day(\\d+)(/.*)?")
-        .matchEntire(window.location.pathname)
-        ?.destructured?.component2()?.toInt()
-        .also { console.log(it) }
-    console.log(funfunfun)
-    document.addEventListener("DOMContentLoaded", { createUI(day) })
+    val global = window.asDynamic()
+    val mod = js("module")
+    global["advent2020"] = mod.exports.advent2020
 }

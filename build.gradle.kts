@@ -74,6 +74,7 @@ kotlin {
             languageSettings.apply {
                 languageVersion = "1.4"
                 apiVersion = "1.4"
+                useExperimentalAnnotation("kotlin.js.ExperimentalJsExport")
             }
         }
     }
