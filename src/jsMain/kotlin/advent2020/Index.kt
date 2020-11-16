@@ -6,7 +6,7 @@ import kotlinx.html.dom.append
 import kotlinx.html.js.*
 import org.w3c.dom.HTMLElement
 
-val knownTasks = listOf(1 to "Waiting For The Start")
+val knownTasks = listOf(1 to "The Tyranny of the Rocket Equation (from 2019)")
 
 @JsExport
 fun createIndex() {
