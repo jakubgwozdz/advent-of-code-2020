@@ -1,11 +1,17 @@
 package advent2020.day01
 
-import advent2020.ProgressReporter
 import advent2020.PuzzleContext
+import advent2020.SolverController
+import kotlinx.coroutines.Job
 
-const val myPuzzleInput = "1234 1234"
+val solverController = object : SolverController {
+    override fun startPhase1(): Job {
+        TODO("Not yet implemented")
+    }
 
-val part1progressReporter = object : ProgressReporter {}
-val part2progressReporter = object : ProgressReporter {}
+    override fun startPhase2(): Job {
+        TODO("Not yet implemented")
+    }
+}
 
-val puzzleContext = PuzzleContext(myPuzzleInput, part1progressReporter, part2progressReporter)
+val puzzleContext = PuzzleContext(2020, 1, myPuzzleInput, solverController)

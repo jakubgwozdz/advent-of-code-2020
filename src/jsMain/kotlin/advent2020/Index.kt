@@ -20,7 +20,7 @@ fun createIndex() {
                     div("navbar-item") {
                         div {
                             h1("title") { +"Advent of Code 2020" }
-                            h2("subtitle") { +"Well, "; strong { +"Kotlin-JS" }; +" works!" }
+                            h2("subtitle") { +"Well, press F12 to see how "; strong { +"Kotlin-JS" }; +" works!" }
                         }
                     }
                 }
