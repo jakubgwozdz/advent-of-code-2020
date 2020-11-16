@@ -2,6 +2,7 @@ package advent2020.day01
 
 import advent2020.ProgressReporter
 import advent2020.linesAsFlowOfInt
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectIndexed
 
 interface Day01ProgressReporter : ProgressReporter {
@@ -17,6 +18,9 @@ suspend fun part1(input: String, reporter: ProgressReporter): String {
             val fuel = fuel(value)
             result += fuel
             if (reporter is Day01ProgressReporter) reporter.reportPart1Progress(index+1, lines.size, value, fuel, result)
+            if (reporter.delay > 0) delay(reporter.delay)
+//            var i = 0
+//            while (i < 60000000) i++
         }
 
     return result.toString()
