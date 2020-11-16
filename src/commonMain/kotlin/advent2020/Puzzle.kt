@@ -27,8 +27,8 @@ class PuzzleContext(
     val year: Int = 2020,
     val day: Int,
     var input: String,
-    val part1: suspend (String, ProgressReporter) -> String = TODO("Part 1 not yet implemented"),
-    val part2: suspend (String, ProgressReporter) -> String = TODO("Part 2 not yet implemented"),
+    val part1: suspend (String, ProgressReporter) -> String = { _, _ -> TODO("Part 1 not yet implemented") },
+    val part2: suspend (String, ProgressReporter) -> String = { _, _ -> TODO("Part 2 not yet implemented") },
 ) {
 
     fun launchPart1(progressReporter: ProgressReporter = trivialReporter) = GlobalScope.launch {
