@@ -11,7 +11,7 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLTextAreaElement
 
 
-fun createHeader(day: Int, inputData: InputData) {
+fun createHeader(day: Int, puzzleContext: PuzzleContext) {
     val title = knownTasks.firstOrNull { it.first == day }?.second ?: ""
 
     document.head!!.append {
@@ -63,16 +63,16 @@ fun createHeader(day: Int, inputData: InputData) {
                     }
                 }
                 section("modal-card-body") {
-                    textArea(classes = "textarea") { +inputData.value ; id = inputDataTextAreaId }
+                    textArea(classes = "textarea") { +puzzleContext.input ; id = inputDataTextAreaId }
                 }
                 footer("modal-card-foot") {
                     button(classes = "button is-success") {
                         +"Save changes"
-                        onClickFunction = { inputData.value = inputDataTextArea.value ; hideInputDataModal() }
+                        onClickFunction = { puzzleContext.input = inputDataTextArea.value ; hideInputDataModal() }
                     }
                     button(classes = "button") {
                         +"Cancel"
-                        onClickFunction = { inputDataTextArea.value = inputData.value ; hideInputDataModal() }
+                        onClickFunction = { inputDataTextArea.value = puzzleContext.input ; hideInputDataModal() }
                     }
                 }
             }
