@@ -81,7 +81,7 @@ fun createHeader(day: Int, puzzleContext: PuzzleContext) {
 }
 
 const val inputDataModalId = "input-data-modal"
-val inputDataModal = document.byId<HTMLElement>(inputDataModalId)
+val inputDataModal get() = document.byId<HTMLElement>(inputDataModalId)
 
 fun showInputDataModal() = inputDataModal.addClass("is-active")
 fun hideInputDataModal() = inputDataModal.removeClass("is-active")
