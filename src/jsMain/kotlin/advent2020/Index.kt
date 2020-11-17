@@ -6,7 +6,9 @@ import kotlinx.html.dom.append
 import kotlinx.html.js.*
 import org.w3c.dom.HTMLElement
 
-val knownTasks = listOf(1 to "The Tyranny of the Rocket Equation (from 2019)")
+data class PuzzleInfo(val path: String, val title:String, val day: Int, val year: Int = 2020)
+
+val knownTasks by lazy { listOf(advent2020.day00.puzzleInfo) }
 
 @JsExport
 fun createIndex() {
@@ -38,14 +40,14 @@ fun createIndex() {
 
         section("section") {
             div("container") {
-                knownTasks.forEach { (day, name) -> dayLink(day, name) }
+                knownTasks.forEach { dayLink(it) }
             }
         }
     }
 }
 
-fun TagConsumer<HTMLElement>.dayLink(i: Int, title: String) {
+fun TagConsumer<HTMLElement>.dayLink(info: PuzzleInfo) {
     p("subtitle is-5") {
-        a("day${i.toString().padStart(2, '0')}") { +"Day $i: $title" }
+        a(info.path) { +"Day ${info.day}: ${info.title}" }
     }
 }

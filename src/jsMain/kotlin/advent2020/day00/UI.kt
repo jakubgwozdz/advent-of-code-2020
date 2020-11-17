@@ -1,6 +1,7 @@
 package advent2020.day00
 
 import advent2020.PuzzleContext
+import advent2020.PuzzleInfo
 import advent2020.TaskLauncher
 import advent2020.createHeader
 import advent2020.day00.Day00HtmlReporter.Current.NONE
@@ -20,18 +21,18 @@ import kotlinx.html.js.section
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLProgressElement
 
-val puzzleContext by lazy { PuzzleContext(2019, 1, myPuzzleInput, ::part1) }
+val puzzleContext by lazy { PuzzleContext(myPuzzleInput, ::part1) }
+val puzzleInfo = PuzzleInfo("day00", "The Tyranny of the Rocket Equation (from 2019)", 1, 2019)
 
 @JsExport
 fun createUI() {
 
     val progressReporter = Day00HtmlReporter()
 
-    createHeader(1, puzzleContext)
+    createHeader(puzzleInfo, puzzleContext)
     progressReporter.appendTo(document.body!!)
 }
 
-const val part01ProgressId = "part01-progress"
 
 class Day00HtmlReporter : Day00ProgressReporter {
 

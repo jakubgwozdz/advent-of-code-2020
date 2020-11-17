@@ -21,8 +21,6 @@ val emptyReporter = object : ProgressReporter {
 }
 
 open class PuzzleContext(
-    val year: Int = 2020,
-    val day: Int,
     var input: String,
     private val part1: suspend (String, ProgressReporter) -> String = { _, _ -> TODO("Part 1 not yet implemented") },
     private val part2: suspend (String, ProgressReporter) -> String = { _, _ -> TODO("Part 2 not yet implemented") },
