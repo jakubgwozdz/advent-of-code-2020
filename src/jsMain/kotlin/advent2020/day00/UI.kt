@@ -44,6 +44,9 @@ class Day00HtmlReporter : Day00ProgressReporter {
 
     override suspend fun startingPart1() {
         part01Loading.addClass("is-loading")
+        part01Progress.removeClass("is-error")
+        part01Progress.removeClass("is-success")
+        part01Progress.attributes.removeNamedItem("value")
         currentTask = PART1
     }
 
@@ -54,11 +57,19 @@ class Day00HtmlReporter : Day00ProgressReporter {
 
     override suspend fun phaseFinished(result: String) {
         part01Loading.removeClass("is-loading")
+        if (currentTask == PART1) {
+            part01Progress.addClass("is-success")
+            part01Progress.value = part01Progress.max
+        }
         currentTask = NONE
     }
 
     override suspend fun error(message: Any?) {
         part01Loading.removeClass("is-loading")
+        if (currentTask == PART1) {
+            part01Progress.addClass("is-error")
+            part01Progress.value = part01Progress.max
+        }
         currentTask = NONE
     }
 
@@ -93,7 +104,7 @@ class Day00HtmlReporter : Day00ProgressReporter {
                         }
                     }
                 }
-                part01Progress = progress("progress") {
+                part01Progress = progress("progress has-background-grey-dark is-info") {
                     value = "0"
                     max = "100"
                 }
