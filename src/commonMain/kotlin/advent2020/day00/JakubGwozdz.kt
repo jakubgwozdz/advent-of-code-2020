@@ -1,4 +1,4 @@
-package advent2020.day01
+package advent2020.day00
 
 val myPuzzleInput get() = """
 142195

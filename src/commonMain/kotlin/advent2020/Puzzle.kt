@@ -4,23 +4,20 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 
 interface ProgressReporter {
-    suspend fun startingPhase1() {}
-    suspend fun startingPhase2() {}
-    suspend fun phaseFinished(result: String) {
-        println(result)
-    }
-
-    suspend fun error(message: Any?) {
-        println("ERROR: $message")
-    }
+    suspend fun startingPart1() {}
+    suspend fun startingPart2() {}
+    suspend fun phaseFinished(result: String) {}
+    suspend fun error(message: Any?) {}
 
     val delay: Long get() = 0
 }
 
-val trivialReporter = object : ProgressReporter {}
+val trivialReporter = object : ProgressReporter {
+    override suspend fun error(message: Any?) = println("ERROR: $message")
+    override suspend fun phaseFinished(result: String) = println(result)
+}
+
 val emptyReporter = object : ProgressReporter {
-    override suspend fun error(message: Any?) {}
-    override suspend fun phaseFinished(result: String) {}
 }
 
 open class PuzzleContext(
@@ -32,7 +29,7 @@ open class PuzzleContext(
 ) {
 
     suspend fun launchPart1(progressReporter: ProgressReporter = trivialReporter) {
-        progressReporter.startingPhase1()
+        progressReporter.startingPart1()
         return try {
             val result = part1(input, progressReporter)
             progressReporter.phaseFinished(result)
@@ -42,7 +39,7 @@ open class PuzzleContext(
     }
 
     suspend fun launchPart2(progressReporter: ProgressReporter = trivialReporter) {
-        progressReporter.startingPhase2()
+        progressReporter.startingPart2()
         try {
             val result = part2(input, progressReporter)
             progressReporter.phaseFinished(result)
@@ -53,4 +50,4 @@ open class PuzzleContext(
 
 }
 
-suspend fun List<String>.linesAsFlowOfInt() = asSequence().asFlow().map { it.toInt() }
+suspend fun List<String>.linesAsFlowOfLong() = asSequence().asFlow().map { it.toLong() }

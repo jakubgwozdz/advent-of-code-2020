@@ -1,11 +1,11 @@
-package advent2020.day01
+package advent2020.day00
 
 import advent2020.emptyReporter
 import advent2020.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class Day01PuzzleTest {
+class Day00PuzzleTest {
 
     @Test
     fun jakubgwozdzPart1() = runTest {

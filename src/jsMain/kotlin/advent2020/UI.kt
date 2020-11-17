@@ -11,17 +11,16 @@ import org.w3c.dom.Document
 import org.w3c.dom.HTMLElement
 
 
-fun createHeader(day: Int, puzzleContext: PuzzleContext, progressReporter: ProgressReporter) {
+fun createHeader(day: Int, puzzleContext: PuzzleContext) {
     val title = knownTasks.firstOrNull { it.first == day }?.second ?: ""
 
     val inputDataModal = InputDataModal(puzzleContext)
-    val taskLauncher = TaskLauncher(puzzleContext, progressReporter)
 
     document.head!!.append {
         title { +"$day: $title" }
     }
     document.body!!.append {
-        createHeader(day, title, inputDataModal, taskLauncher)
+        createHeader(day, title, inputDataModal)
         inputDataModal.appendTo(this)
     }
 }
@@ -29,8 +28,7 @@ fun createHeader(day: Int, puzzleContext: PuzzleContext, progressReporter: Progr
 private fun TagConsumer<HTMLElement>.createHeader(
     day: Int,
     title: String,
-    inputDataModal: InputDataModal,
-    taskLauncher: TaskLauncher
+    inputDataModal: InputDataModal
 ) {
     nav("navbar") {
         div("container") {
@@ -46,22 +44,6 @@ private fun TagConsumer<HTMLElement>.createHeader(
                         button(classes = "button") {
                             +"Input Data"
                             onClickFunction = { inputDataModal.show() }
-                        }
-                    }
-                }
-                div("navbar-item") {
-                    div("control") {
-                        button(classes = "button") {
-                            +"Run Part 1"
-                            onClickFunction = { taskLauncher.launchPart1() }
-                        }
-                    }
-                }
-                div("navbar-item") {
-                    div("control") {
-                        button(classes = "button") {
-                            +"Run Part 2"
-                            onClickFunction = { taskLauncher.launchPart2() }
                         }
                     }
                 }
