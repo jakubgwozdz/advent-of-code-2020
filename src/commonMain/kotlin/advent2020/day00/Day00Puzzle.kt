@@ -1,15 +1,15 @@
 package advent2020.day00
 
-import advent2020.ProgressReporter
+import advent2020.ProgressReceiver
 import advent2020.linesAsFlowOfLong
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectIndexed
 
-interface Day00ProgressReporter : ProgressReporter {
-    suspend fun reportPart1Progress(no: Int, total: Int, mass:Long, fuel:Long, sum: Long)
+interface Day00Part1ProgressReporter : ProgressReceiver {
+    suspend fun progress(no: Int, total: Int, mass:Long, fuel:Long, sum: Long)
 }
 
-suspend fun part1(input: String, reporter: ProgressReporter): String {
+suspend fun part1(input: String, receiver: ProgressReceiver): String {
     val lines = input.lines()
     var result = 0L
 
@@ -17,8 +17,9 @@ suspend fun part1(input: String, reporter: ProgressReporter): String {
         .collectIndexed { index, value ->
             val fuel = fuel(value)
             result += fuel
-            if (reporter is Day00ProgressReporter) reporter.reportPart1Progress(index+1, lines.size, value, fuel, result)
-            delay(reporter.delay)
+            if (receiver is Day00Part1ProgressReporter) receiver.progress(index+1, lines.size, value, fuel, result)
+//            if (index > 80) error("umpf")
+            delay(receiver.delay)
         }
 
     return result.toString()

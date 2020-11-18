@@ -104,23 +104,3 @@ private fun TagConsumer<HTMLElement>.createInputSection(
 inline fun <reified K : HTMLElement> Document.byId(elementId: String) =
     getElementById(elementId) as K
 
-class TaskLauncher(val puzzleContext: PuzzleContext, val progressReporter: ProgressReporter) {
-
-    var activeJob: Job? = null
-
-    fun launchPart1() {
-        activeJob?.let { if (it.isActive) it.cancel() }
-        activeJob = GlobalScope.launch {
-            puzzleContext.launchPart1(progressReporter)
-        }
-    }
-
-    fun launchPart2() {
-        activeJob?.let { if (it.isActive) it.cancel() }
-        activeJob = GlobalScope.launch {
-            puzzleContext.launchPart2(progressReporter)
-        }
-    }
-
-
-}
