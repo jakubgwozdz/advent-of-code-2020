@@ -20,7 +20,7 @@ import org.w3c.dom.HTMLProgressElement
 open class TaskSection(
     private val title: String,
     private val puzzleContext: PuzzleContext,
-    private val task: PuzzleTask = { _, _ -> TODO("Part not yet implemented") }
+    private val task: PuzzleTask = { _, _ -> TODO("$title not yet implemented") }
 ) : ProgressReceiver {
 
     override suspend fun starting() {
