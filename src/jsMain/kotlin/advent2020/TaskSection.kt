@@ -6,58 +6,63 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.dom.addClass
 import kotlinx.dom.removeClass
+import kotlinx.html.Entities.nbsp
 import kotlinx.html.TagConsumer
+import kotlinx.html.js.*
 import kotlinx.html.dom.append
-import kotlinx.html.js.button
-import kotlinx.html.js.div
-import kotlinx.html.js.h1
 import kotlinx.html.js.onClickFunction
-import kotlinx.html.js.progress
-import kotlinx.html.js.section
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLProgressElement
 
 open class TaskSection(
     private val title: String,
     private val puzzleContext: PuzzleContext,
-    private val task: PuzzleTask = { _, _ -> TODO("$title not yet implemented") }
+    private val task: PuzzleTask = { _, _ -> TODO(title) }
 ) : ProgressReceiver {
 
     override suspend fun starting() {
+        console.log("Starting $title")
         launchButton.addClass("is-loading")
-        cancelButton.removeClass("is-hidden")
+        cancelButton.removeClass("is-invisible")
+        resultItem.addClass("is-invisible")
+        errorItem.addClass("is-hidden")
         progressBar.removeClass("is-danger")
         progressBar.removeClass("is-success")
         progressBar.attributes.removeNamedItem("value")
     }
 
     override suspend fun success(result: String) {
+        console.log(result)
         launchButton.removeClass("is-loading")
-        cancelButton.addClass("is-hidden")
+        cancelButton.addClass("is-invisible")
         progressBar.addClass("is-success")
         progressBar.value = progressBar.max
-        console.log(result)
+        resultItem.removeClass("is-invisible")
+        resultTag.textContent = result
     }
 
     override suspend fun error(message: Any?) {
-        launchButton.removeClass("is-loading")
-        cancelButton.addClass("is-hidden")
-        progressBar.addClass("is-danger")
-        progressBar.value = progressBar.max
         console.log(message)
+        launchButton.removeClass("is-loading")
+        cancelButton.addClass("is-invisible")
+        progressBar.addClass("is-danger")
+        errorItem.removeClass("is-hidden")
+        errorTag.textContent = JSON.stringify(message, null, 2)
+        errorMessage.textContent = message.toString()
+        progressBar.value = progressBar.max
     }
 
     fun appendTo(body: HTMLElement) {
         body.append { createSection() }
     }
 
-    private fun TagConsumer<HTMLElement>.createSection() {
+    protected open fun TagConsumer<HTMLElement>.createSection() {
         section("section") {
             div("container") {
                 div("level") {
                     div("level-left") {
                         div("level-item") {
-                            h1("title") { +title }
+                            p("title is-3") { +title }
                         }
                         div("level-item") {
                             div("control") {
@@ -66,8 +71,13 @@ open class TaskSection(
                                     onClickFunction = { launch() }
                                 }
                             }
+                        }
+                    }
+                    createResultItem()
+                    div("level-right") {
+                        div("level-item") {
                             div("control") {
-                                cancelButton = button(classes = "delete is-hidden") {
+                                cancelButton = button(classes = "delete is-large is-invisible") {
                                     onClickFunction = { cancel() }
                                 }
                             }
@@ -78,6 +88,22 @@ open class TaskSection(
                     value = "0"
                     max = "100"
                 }
+
+                errorItem = figure("box is-hidden") {
+                    errorMessage = p("subtitle is-5 is-failure") { }
+                    errorTag = pre { }
+                }
+            }
+        }
+
+
+    }
+
+    protected open fun TagConsumer<HTMLElement>.createResultItem() {
+        resultItem = div("level-item has-text-centered is-invisible") {
+            div {
+                p("heading") { +"Result: " }
+                p { resultTag = code { +nbsp } }
             }
         }
     }
@@ -104,6 +130,10 @@ open class TaskSection(
     lateinit var progressBar: HTMLProgressElement
     lateinit var launchButton: HTMLElement
     lateinit var cancelButton: HTMLElement
-
+    lateinit var resultItem: HTMLElement
+    lateinit var resultTag: HTMLElement
+    lateinit var errorItem: HTMLElement
+    lateinit var errorMessage: HTMLElement
+    lateinit var errorTag: HTMLElement
 
 }

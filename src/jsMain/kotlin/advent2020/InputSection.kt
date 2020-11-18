@@ -5,7 +5,6 @@ import kotlinx.html.dom.append
 import kotlinx.html.js.a
 import kotlinx.html.js.button
 import kotlinx.html.js.div
-import kotlinx.html.js.h1
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.p
 import kotlinx.html.js.section
@@ -24,7 +23,7 @@ fun createVisibleInputSection(puzzleInfo: PuzzleInfo, inputDataModal: InputDataM
                 div("level") {
                     div("level-left") {
                         div("level-item") {
-                            h1("title") { +"Input Data" }
+                            p("title is-3") { +"Input Data" }
                         }
                         div("level-item") {
                             div("control") {
