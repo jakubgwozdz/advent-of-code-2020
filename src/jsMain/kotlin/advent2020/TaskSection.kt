@@ -17,23 +17,18 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLProgressElement
 
-var index = 1
-
 interface TaskSection : ProgressReceiver {
-    val puzzleContext: PuzzleContext
-    val task: PuzzleTask
-    val progressBar: HTMLProgressElement
     fun launch()
     fun cancel()
 }
 
 open class GenericTaskSection(
     val title: String,
-    override val puzzleContext: PuzzleContext,
-    override val task: PuzzleTask = { _, _ -> TODO(title) },
+    val puzzleContext: PuzzleContext,
+    val task: PuzzleTask = { _, _ -> TODO(title) },
     val resultField: ResultField,
     val errorField: ErrorField,
-    override val progressBar: HTMLProgressElement,
+    val progressBar: HTMLProgressElement,
     val launchButton: HTMLButtonElement,
     val cancelButton: HTMLButtonElement
 ) : TaskSection {
@@ -170,6 +165,9 @@ open class TaskSectionBuilder {
                     }
 
                     errorField = createErrorField()
+
+                    createTaskSpecificFields(this@append)
+
                 }
             }
         }
@@ -178,6 +176,10 @@ open class TaskSectionBuilder {
         cancelButton.onclick = { obj.cancel() }
 
         return obj
+    }
+
+    protected open fun createTaskSpecificFields(div: TagConsumer<HTMLElement>) {
+
     }
 
     protected open fun constructObject(): TaskSection = GenericTaskSection(

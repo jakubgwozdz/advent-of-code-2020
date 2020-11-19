@@ -55,6 +55,8 @@ class BackgroundTaskLauncher :TaskLauncher{
                 receiver.error(e)
             }
         }
+
+
     }
     override fun cancel(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
         activeJob?.let { if (it.isActive) it.cancel("cancelling") }
