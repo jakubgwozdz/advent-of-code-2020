@@ -47,7 +47,7 @@ open class BackgroundTaskLauncher {
                 val result = task(puzzleContext.input, receiver)
                 receiver.success(result)
             } catch (e: Throwable) {
-                error(e)
+                receiver.error(e)
             }
         }
     }
