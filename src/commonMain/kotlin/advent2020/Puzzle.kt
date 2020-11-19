@@ -1,7 +1,11 @@
 package advent2020
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 typealias PuzzleTask = suspend (String, ProgressReceiver) -> String
@@ -32,3 +36,22 @@ val emptyReceiver = object : ProgressReceiver {
 
 
 suspend fun List<String>.linesAsFlowOfLong() = asSequence().asFlow().map { it.toLong() }
+
+open class BackgroundTaskLauncher {
+    var activeJob: Job? = null
+    open fun launch(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
+        activeJob?.let { if (it.isActive) it.cancel("cancelling because rerun") }
+        activeJob = GlobalScope.launch {
+            receiver.starting()
+            try {
+                val result = task(puzzleContext.input, receiver)
+                receiver.success(result)
+            } catch (e: Throwable) {
+                error(e)
+            }
+        }
+    }
+    open fun cancel(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
+        activeJob?.let { if (it.isActive) it.cancel("cancelling") }
+    }
+}

@@ -14,7 +14,11 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLProgressElement
 
+var index = 1
+
 interface TaskSection: ProgressReceiver {
+    val puzzleContext: PuzzleContext
+    val task: PuzzleTask
     val progressBar: HTMLProgressElement
     fun launch()
     fun cancel()
@@ -22,14 +26,16 @@ interface TaskSection: ProgressReceiver {
 
 open class GenericTaskSection(
     val title: String,
-    val puzzleContext: PuzzleContext,
-    val task: PuzzleTask = { _, _ -> TODO(title) },
+    override val puzzleContext: PuzzleContext,
+    override val task: PuzzleTask = { _, _ -> TODO(title) },
     val resultField: ResultField,
     val errorField: ErrorField,
     override val progressBar: HTMLProgressElement,
     val launchButton: HTMLButtonElement,
     val cancelButton: HTMLButtonElement
 ) : TaskSection {
+
+    private val taskLauncher = BackgroundTaskLauncher()
 
     override suspend fun starting() {
         console.log("Starting $title")
@@ -49,6 +55,7 @@ open class GenericTaskSection(
         cancelButton.addClass("is-invisible")
         progressBar.addClass("is-success")
         progressBar.value = progressBar.max
+        js("debugger;")
     }
 
     override suspend fun error(message: Any?) {
@@ -60,24 +67,12 @@ open class GenericTaskSection(
         progressBar.value = progressBar.max
     }
 
-    var activeJob: Job? = null
-
     override fun launch() {
-        val ts = this
-        activeJob?.let { if (it.isActive) it.cancel("cancelling because rerun") }
-        activeJob = GlobalScope.launch {
-            starting()
-            try {
-                val result = task(puzzleContext.input, ts)
-                success(result)
-            } catch (e: Throwable) {
-                error(e)
-            }
-        }
+        taskLauncher.launch(this, puzzleContext, task)
     }
 
     override fun cancel() {
-        activeJob?.let { if (it.isActive) it.cancel("cancelling") }
+        taskLauncher.cancel(this, puzzleContext, task)
     }
 
 

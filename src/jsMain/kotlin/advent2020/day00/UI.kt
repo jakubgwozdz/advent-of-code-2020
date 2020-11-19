@@ -21,7 +21,8 @@ fun createUI() {
 }
 
 
-class Day00Part1Section(delegated: TaskSection) : TaskSection by delegated, Day00Part1ProgressReporter {
+class Day00Part1Section(val delegated: TaskSection) : TaskSection by delegated, Day00Part1ProgressReporter {
+    val i = index++
 
     override suspend fun progress(no: Int, total: Int, mass: Long, fuel: Long, sum: Long) {
         progressBar.apply { value = no.toDouble(); max = total.toDouble() }
@@ -31,6 +32,17 @@ class Day00Part1Section(delegated: TaskSection) : TaskSection by delegated, Day0
 
     override val delay: Long
         get() = 13
+
+    val taskLauncher = BackgroundTaskLauncher()
+
+    // need to use own impl, not the delegated one
+    override fun launch() {
+        taskLauncher.launch(this, puzzleContext, task)
+    }
+    override fun cancel() {
+        taskLauncher.cancel(this, puzzleContext, task)
+    }
+
 
 }
 
