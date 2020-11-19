@@ -1,34 +1,48 @@
 package advent2020.day00
 
-import advent2020.PuzzleContext
-import advent2020.PuzzleInfo
-import advent2020.TaskSection
-import advent2020.createHeader
-import advent2020.createInputSectionWithModal
+import advent2020.*
 import kotlinx.browser.document
 
-val puzzleContext by lazy { PuzzleContext(myPuzzleInput) }
-val puzzleInfo = PuzzleInfo("day00", "The Tyranny of the Rocket Equation (from 2019)", 1, 2019)
+val day00puzzleContext by lazy { PuzzleContext(day00myPuzzleInput) }
+val day00puzzleInfo = PuzzleInfo("day00", "The Tyranny of the Rocket Equation (from 2019)", 1, 2019)
 
 @JsExport
 fun createUI() {
 
-    createHeader(puzzleInfo)
-    createInputSectionWithModal(puzzleInfo, puzzleContext)
-    Day00Part1Section().appendTo(document.body!!)
-    TaskSection("Part 2", puzzleContext).appendTo(document.body!!)
+    createHeader(day00puzzleInfo)
+    createInputSectionWithModal(day00puzzleInfo, day00puzzleContext)
+
+    Day00Part1SectionBuilder().buildInBody(document.body!!)
+
+    taskSection {
+        title = "Part 2"
+        puzzleContext = day00puzzleContext
+    }.buildInBody(document.body!!)
 }
 
 
-class Day00Part1Section : TaskSection("Part 1", puzzleContext, ::part1), Day00Part1ProgressReporter {
+class Day00Part1Section(delegated: TaskSection) : TaskSection by delegated, Day00Part1ProgressReporter {
 
     override suspend fun progress(no: Int, total: Int, mass: Long, fuel: Long, sum: Long) {
         progressBar.apply { value = no.toDouble(); max = total.toDouble() }
-        console.log("$no/$total: mass=$mass => fuel=$fuel, sum=$sum")
+        console.log("$no/$total:  mass=$mass => fuel=$fuel, sum=$sum")
     }
 
 
     override val delay: Long
         get() = 13
 
+}
+
+class Day00Part1SectionBuilder : TaskSectionBuilder() {
+
+    init {
+        title = "Part 1"
+        puzzleContext = day00puzzleContext
+        task = ::part1
+    }
+
+    override fun constructObject(): TaskSection {
+        return Day00Part1Section(super.constructObject())
+    }
 }

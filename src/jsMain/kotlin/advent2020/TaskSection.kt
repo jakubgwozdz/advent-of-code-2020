@@ -8,24 +8,35 @@ import kotlinx.dom.addClass
 import kotlinx.dom.removeClass
 import kotlinx.html.Entities.nbsp
 import kotlinx.html.TagConsumer
-import kotlinx.html.js.*
 import kotlinx.html.dom.append
-import kotlinx.html.js.onClickFunction
+import kotlinx.html.js.*
+import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLProgressElement
 
-open class TaskSection(
-    private val title: String,
-    private val puzzleContext: PuzzleContext,
-    private val task: PuzzleTask = { _, _ -> TODO(title) }
-) : ProgressReceiver {
+interface TaskSection: ProgressReceiver {
+    val progressBar: HTMLProgressElement
+    fun launch()
+    fun cancel()
+}
+
+open class GenericTaskSection(
+    val title: String,
+    val puzzleContext: PuzzleContext,
+    val task: PuzzleTask = { _, _ -> TODO(title) },
+    val resultField: ResultField,
+    val errorField: ErrorField,
+    override val progressBar: HTMLProgressElement,
+    val launchButton: HTMLButtonElement,
+    val cancelButton: HTMLButtonElement
+) : TaskSection {
 
     override suspend fun starting() {
         console.log("Starting $title")
         launchButton.addClass("is-loading")
         cancelButton.removeClass("is-invisible")
-        resultItem.addClass("is-invisible")
-        errorItem.addClass("is-hidden")
+        resultField.hide()
+        errorField.hide()
         progressBar.removeClass("is-danger")
         progressBar.removeClass("is-success")
         progressBar.attributes.removeNamedItem("value")
@@ -33,89 +44,31 @@ open class TaskSection(
 
     override suspend fun success(result: String) {
         console.log(result)
+        resultField.show(result)
         launchButton.removeClass("is-loading")
         cancelButton.addClass("is-invisible")
         progressBar.addClass("is-success")
         progressBar.value = progressBar.max
-        resultItem.removeClass("is-invisible")
-        resultTag.textContent = result
     }
 
     override suspend fun error(message: Any?) {
         console.log(message)
+        errorField.show(message.toString(), message)
         launchButton.removeClass("is-loading")
         cancelButton.addClass("is-invisible")
         progressBar.addClass("is-danger")
-        errorItem.removeClass("is-hidden")
-        errorTag.textContent = JSON.stringify(message, null, 2)
-        errorMessage.textContent = message.toString()
         progressBar.value = progressBar.max
-    }
-
-    fun appendTo(body: HTMLElement) {
-        body.append { createSection() }
-    }
-
-    protected open fun TagConsumer<HTMLElement>.createSection() {
-        section("section") {
-            div("container") {
-                div("level") {
-                    div("level-left") {
-                        div("level-item") {
-                            p("title is-3") { +title }
-                        }
-                        div("level-item") {
-                            div("control") {
-                                launchButton = button(classes = "button") {
-                                    +"Run"
-                                    onClickFunction = { launch() }
-                                }
-                            }
-                        }
-                    }
-                    createResultItem()
-                    div("level-right") {
-                        div("level-item") {
-                            div("control") {
-                                cancelButton = button(classes = "delete is-large is-invisible") {
-                                    onClickFunction = { cancel() }
-                                }
-                            }
-                        }
-                    }
-                }
-                progressBar = progress("progress has-background-grey-dark is-info") {
-                    value = "0"
-                    max = "100"
-                }
-
-                errorItem = figure("box is-hidden") {
-                    errorMessage = p("subtitle is-5 is-failure") { }
-                    errorTag = pre { }
-                }
-            }
-        }
-
-
-    }
-
-    protected open fun TagConsumer<HTMLElement>.createResultItem() {
-        resultItem = div("level-item has-text-centered is-invisible") {
-            div {
-                p("heading") { +"Result: " }
-                p { resultTag = code { +nbsp } }
-            }
-        }
     }
 
     var activeJob: Job? = null
 
-    fun launch() {
+    override fun launch() {
+        val ts = this
         activeJob?.let { if (it.isActive) it.cancel("cancelling because rerun") }
         activeJob = GlobalScope.launch {
             starting()
             try {
-                val result = task(puzzleContext.input, this@TaskSection)
+                val result = task(puzzleContext.input, ts)
                 success(result)
             } catch (e: Throwable) {
                 error(e)
@@ -123,17 +76,145 @@ open class TaskSection(
         }
     }
 
-    fun cancel() {
+    override fun cancel() {
         activeJob?.let { if (it.isActive) it.cancel("cancelling") }
     }
 
-    lateinit var progressBar: HTMLProgressElement
-    lateinit var launchButton: HTMLElement
-    lateinit var cancelButton: HTMLElement
-    lateinit var resultItem: HTMLElement
-    lateinit var resultTag: HTMLElement
-    lateinit var errorItem: HTMLElement
-    lateinit var errorMessage: HTMLElement
-    lateinit var errorTag: HTMLElement
 
 }
+
+interface ErrorField {
+    fun show(title: String, message: Any?)
+    fun hide()
+}
+
+open class ErrorFigure(
+    val errorItem: HTMLElement,
+    val errorMessage: HTMLElement,
+    val errorTag: HTMLElement
+) : ErrorField {
+    override fun show(title: String, message: Any?) {
+        errorItem.removeClass("is-hidden")
+        errorTag.textContent = JSON.stringify(message, null, 2)
+        errorMessage.textContent = title
+    }
+
+    override fun hide() {
+        errorItem.addClass("is-hidden")
+    }
+}
+
+interface ResultField {
+    fun show(result: String)
+    fun hide()
+}
+
+open class ResultLevelItem(
+    val resultItem: HTMLElement,
+    val resultTag: HTMLElement
+) : ResultField {
+    override fun show(result: String) {
+        resultItem.removeClass("is-invisible")
+        resultTag.textContent = result
+    }
+
+    override fun hide() {
+        resultItem.addClass("is-invisible")
+    }
+
+}
+
+open class TaskSectionBuilder {
+
+    lateinit var title: String
+    lateinit var puzzleContext: PuzzleContext
+    var task: PuzzleTask = { _, _ -> TODO(title) }
+    protected lateinit var htmlElement: HTMLElement
+
+    protected lateinit var progressBar: HTMLProgressElement
+    protected lateinit var launchButton: HTMLButtonElement
+    protected lateinit var cancelButton: HTMLButtonElement
+
+    protected lateinit var resultField: ResultField
+    protected lateinit var errorField: ErrorField
+
+    open fun buildInBody(body: HTMLElement): TaskSection {
+
+        body.append {
+            htmlElement = section("section") {
+                div("container") {
+                    div("level") {
+                        div("level-left") {
+                            div("level-item") {
+                                p("title is-3") { +title }
+                            }
+                            div("level-item") {
+                                div("control") {
+                                    launchButton = button(classes = "button") {
+                                        +"Run"
+                                    }
+                                }
+                            }
+                        }
+                        resultField = createResultField()
+                        div("level-right") {
+                            div("level-item") {
+                                div("control") {
+                                    cancelButton =
+                                        button(classes = "delete is-large is-invisible") { }
+                                }
+                            }
+                        }
+                    }
+                    progressBar = progress("progress has-background-grey-dark is-info") {
+                        value = "0"
+                        max = "100"
+                    }
+
+                    errorField = createErrorField()
+                }
+            }
+        }
+        val obj = constructObject()
+        launchButton.onclick = { obj.launch() }
+        cancelButton.onclick = { obj.cancel() }
+
+        return obj
+    }
+
+    protected open fun constructObject():TaskSection = GenericTaskSection(
+        title,
+        puzzleContext,
+        task,
+        resultField,
+        errorField,
+        progressBar,
+        launchButton,
+        cancelButton
+    )
+
+    protected open fun TagConsumer<HTMLElement>.createResultField(): ResultField {
+        lateinit var resultItem: HTMLElement
+        lateinit var resultTag: HTMLElement
+        resultItem = div("level-item has-text-centered is-invisible") {
+            div {
+                p("heading") { +"Result: " }
+                p { resultTag = code { +nbsp } }
+            }
+        }
+        return ResultLevelItem(resultItem, resultTag)
+    }
+
+    protected open fun TagConsumer<HTMLElement>.createErrorField(): ErrorField {
+        lateinit var errorItem: HTMLElement
+        lateinit var errorMessage: HTMLElement
+        lateinit var errorTag: HTMLElement
+        errorItem = figure("box is-hidden") {
+            errorMessage = p("subtitle is-5 is-failure") { }
+            errorTag = pre { }
+        }
+        return ErrorFigure(errorItem, errorMessage, errorTag)
+    }
+}
+
+fun taskSection(op: TaskSectionBuilder.()->Unit) = TaskSectionBuilder().apply(op)

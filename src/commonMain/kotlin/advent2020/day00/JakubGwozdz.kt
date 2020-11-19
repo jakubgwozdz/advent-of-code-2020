@@ -1,6 +1,6 @@
 package advent2020.day00
 
-val myPuzzleInput get() = """
+val day00myPuzzleInput get() = """
 142195
 119326
 57976

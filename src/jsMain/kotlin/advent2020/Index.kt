@@ -8,7 +8,7 @@ import org.w3c.dom.HTMLElement
 
 data class PuzzleInfo(val path: String, val title:String, val day: Int, val year: Int = 2020)
 
-val knownTasks by lazy { listOf(advent2020.day00.puzzleInfo) }
+val knownTasks by lazy { listOf(advent2020.day00.day00puzzleInfo) }
 
 @JsExport
 fun createIndex() {
