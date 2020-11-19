@@ -82,5 +82,4 @@ kotlin {
     tasks.getByName("jvmTest", Test::class) {
         useJUnitPlatform()
     }
-
 }
