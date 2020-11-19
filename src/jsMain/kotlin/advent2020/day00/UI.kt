@@ -1,7 +1,20 @@
 package advent2020.day00
 
-import advent2020.*
+import advent2020.ErrorField
+import advent2020.GenericTaskSection
+import advent2020.PuzzleContext
+import advent2020.PuzzleInfo
+import advent2020.PuzzleTask
+import advent2020.ResultField
+import advent2020.TaskSection
+import advent2020.TaskSectionBuilder
+import advent2020.createHeader
+import advent2020.createInputSectionWithModal
+import advent2020.index
+import advent2020.taskSection
 import kotlinx.browser.document
+import org.w3c.dom.HTMLButtonElement
+import org.w3c.dom.HTMLProgressElement
 
 val day00puzzleContext by lazy { PuzzleContext(day00myPuzzleInput) }
 val day00puzzleInfo = PuzzleInfo("day00", "The Tyranny of the Rocket Equation (from 2019)", 1, 2019)
@@ -21,7 +34,17 @@ fun createUI() {
 }
 
 
-class Day00Part1Section(val delegated: TaskSection) : TaskSection by delegated, Day00Part1ProgressReporter {
+class Day00Part1Section(
+    title: String,
+    puzzleContext: PuzzleContext,
+    task: PuzzleTask = { _, _ -> TODO(title) },
+    resultField: ResultField,
+    errorField: ErrorField,
+    progressBar: HTMLProgressElement,
+    launchButton: HTMLButtonElement,
+    cancelButton: HTMLButtonElement
+) : GenericTaskSection(title, puzzleContext, task, resultField, errorField, progressBar, launchButton, cancelButton), Day00Part1ProgressReporter {
+
     val i = index++
 
     override suspend fun progress(no: Int, total: Int, mass: Long, fuel: Long, sum: Long) {
@@ -29,20 +52,8 @@ class Day00Part1Section(val delegated: TaskSection) : TaskSection by delegated, 
         console.log("$no/$total:  mass=$mass => fuel=$fuel, sum=$sum")
     }
 
-
     override val delay: Long
         get() = 13
-
-    val taskLauncher = BackgroundTaskLauncher()
-
-    // need to use own impl, not the delegated one
-    override fun launch() {
-        taskLauncher.launch(this, puzzleContext, task)
-    }
-    override fun cancel() {
-        taskLauncher.cancel(this, puzzleContext, task)
-    }
-
 
 }
 
@@ -55,6 +66,15 @@ class Day00Part1SectionBuilder : TaskSectionBuilder() {
     }
 
     override fun constructObject(): TaskSection {
-        return Day00Part1Section(super.constructObject())
+        return Day00Part1Section(
+            title,
+            puzzleContext,
+            task,
+            resultField,
+            errorField,
+            progressBar,
+            launchButton,
+            cancelButton
+        )
     }
 }

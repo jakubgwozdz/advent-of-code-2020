@@ -1,22 +1,25 @@
 package advent2020
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import kotlinx.dom.addClass
 import kotlinx.dom.removeClass
 import kotlinx.html.Entities.nbsp
 import kotlinx.html.TagConsumer
 import kotlinx.html.dom.append
-import kotlinx.html.js.*
+import kotlinx.html.js.button
+import kotlinx.html.js.code
+import kotlinx.html.js.div
+import kotlinx.html.js.figure
+import kotlinx.html.js.p
+import kotlinx.html.js.pre
+import kotlinx.html.js.progress
+import kotlinx.html.js.section
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLProgressElement
 
 var index = 1
 
-interface TaskSection: ProgressReceiver {
+interface TaskSection : ProgressReceiver {
     val puzzleContext: PuzzleContext
     val task: PuzzleTask
     val progressBar: HTMLProgressElement
@@ -35,7 +38,7 @@ open class GenericTaskSection(
     val cancelButton: HTMLButtonElement
 ) : TaskSection {
 
-    private val taskLauncher = BackgroundTaskLauncher()
+    val taskLauncher = BackgroundTaskLauncher()
 
     override suspend fun starting() {
         console.log("Starting $title")
@@ -177,7 +180,7 @@ open class TaskSectionBuilder {
         return obj
     }
 
-    protected open fun constructObject():TaskSection = GenericTaskSection(
+    protected open fun constructObject(): TaskSection = GenericTaskSection(
         title,
         puzzleContext,
         task,
@@ -212,4 +215,4 @@ open class TaskSectionBuilder {
     }
 }
 
-fun taskSection(op: TaskSectionBuilder.()->Unit) = TaskSectionBuilder().apply(op)
+fun taskSection(op: TaskSectionBuilder.() -> Unit) = TaskSectionBuilder().apply(op)

@@ -37,9 +37,14 @@ val emptyReceiver = object : ProgressReceiver {
 
 suspend fun List<String>.linesAsFlowOfLong() = asSequence().asFlow().map { it.toLong() }
 
-open class BackgroundTaskLauncher {
+interface TaskLauncher {
+    fun launch(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask)
+    fun cancel(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask)
+}
+
+class BackgroundTaskLauncher :TaskLauncher{
     var activeJob: Job? = null
-    open fun launch(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
+    override fun launch(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
         activeJob?.let { if (it.isActive) it.cancel("cancelling because rerun") }
         activeJob = GlobalScope.launch {
             receiver.starting()
@@ -51,7 +56,7 @@ open class BackgroundTaskLauncher {
             }
         }
     }
-    open fun cancel(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
+    override fun cancel(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
         activeJob?.let { if (it.isActive) it.cancel("cancelling") }
     }
 }
