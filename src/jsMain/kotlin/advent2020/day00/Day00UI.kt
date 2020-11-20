@@ -2,6 +2,8 @@ package advent2020.day00
 
 import advent2020.ErrorField
 import advent2020.GenericTaskSection
+import advent2020.LogField
+import advent2020.ProgressField
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.PuzzleTask
@@ -13,12 +15,8 @@ import advent2020.createInputSectionWithModal
 import advent2020.taskSection
 import kotlinx.browser.document
 import kotlinx.html.TagConsumer
-import kotlinx.html.js.figure
-import kotlinx.html.js.pre
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLPreElement
-import org.w3c.dom.HTMLProgressElement
 
 val day00puzzleContext by lazy { PuzzleContext(day00myPuzzleInput) }
 val day00puzzleInfo = PuzzleInfo("day00", "The Tyranny of the Rocket Equation (from 2019)", 1, 2019)
@@ -44,31 +42,25 @@ class Day00Part1Section(
     task: PuzzleTask = { _, _ -> TODO(title) },
     resultField: ResultField,
     errorField: ErrorField,
-    progressBar: HTMLProgressElement,
-    val log: HTMLPreElement,
+    progressField: ProgressField,
+    val logField: LogField,
     launchButton: HTMLButtonElement,
     cancelButton: HTMLButtonElement
-) : GenericTaskSection(title, puzzleContext, task, resultField, errorField, progressBar, launchButton, cancelButton), Day00Part1ProgressReporter {
-
-    private val lines = mutableListOf<String>()
+) : GenericTaskSection(title, puzzleContext, task, resultField, errorField, progressField, launchButton, cancelButton), Day00Part1ProgressReporter {
 
     override suspend fun starting() {
         super<GenericTaskSection>.starting()
-        lines.clear()
-        log.textContent = lines.joinToString("\n")
+        logField.clear()
     }
 
     override suspend fun progress(no: Int, total: Int, mass: Long, fuel: Long, sum: Long) {
-        progressBar.apply { value = no.toDouble(); max = total.toDouble() }
+        progressField.value(no.toDouble(), total.toDouble())
 //        console.log("$no/$total:  mass=$mass => fuel=$fuel, sum=$sum")
-        lines += "$no/$total:  mass=$mass => fuel=$fuel, sum=$sum"
-        while (lines.size > 5) lines.removeAt(0)
-
-        log.textContent = lines.joinToString("\n")
+        logField.addLines("$no/$total:  mass=$mass => fuel=$fuel, sum=$sum")
     }
 
-    override val delay: Long
-        get() = 13
+//    override val delay: Long
+//        get() = 13
 
 }
 
@@ -80,14 +72,10 @@ class Day00Part1SectionBuilder : TaskSectionBuilder() {
         task = ::part1
     }
 
-    lateinit var log: HTMLPreElement
+    lateinit var log: LogField
 
     override fun createTaskSpecificFields(div: TagConsumer<HTMLElement>) {
-        with(div) {
-            figure("box") {
-                log = pre { }
-            }
-        }
+        log = div.createLogField()
     }
 
     override fun constructObject(): TaskSection {
@@ -97,7 +85,7 @@ class Day00Part1SectionBuilder : TaskSectionBuilder() {
             task,
             resultField,
             errorField,
-            progressBar,
+            progressField,
             log,
             launchButton,
             cancelButton
