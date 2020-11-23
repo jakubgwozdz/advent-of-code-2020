@@ -16,10 +16,8 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLTextAreaElement
 
 class InputDataModal(private val htmlElement: HTMLElement) {
-
     fun show() = htmlElement.addClass("is-active")
     fun hide() = htmlElement.removeClass("is-active")
-
 }
 
 fun createInputDataModal(puzzleContext: PuzzleContext):InputDataModal {

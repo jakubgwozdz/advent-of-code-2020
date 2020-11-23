@@ -1,18 +1,6 @@
 package advent2020.day00
 
-import advent2020.ErrorField
-import advent2020.GenericTaskSection
-import advent2020.LogField
-import advent2020.ProgressField
-import advent2020.PuzzleContext
-import advent2020.PuzzleInfo
-import advent2020.PuzzleTask
-import advent2020.ResultField
-import advent2020.TaskSection
-import advent2020.TaskSectionBuilder
-import advent2020.createHeader
-import advent2020.createInputSectionWithModal
-import advent2020.taskSection
+import advent2020.*
 import kotlinx.browser.document
 import kotlinx.html.TagConsumer
 import org.w3c.dom.HTMLButtonElement
@@ -41,9 +29,9 @@ class Day00Part1Section(
     puzzleContext: PuzzleContext,
     task: PuzzleTask = { _, _ -> TODO(title) },
     resultField: ResultField,
-    errorField: ErrorField,
+    errorField: ReportField,
     progressField: ProgressField,
-    val logField: LogField,
+    val logField: ReportField,
     launchButton: HTMLButtonElement,
     cancelButton: HTMLButtonElement
 ) : GenericTaskSection(title, puzzleContext, task, resultField, errorField, progressField, launchButton, cancelButton), Day00Part1ProgressReporter {
@@ -72,7 +60,7 @@ class Day00Part1SectionBuilder : TaskSectionBuilder() {
         task = ::part1
     }
 
-    lateinit var log: LogField
+    lateinit var log: ReportField
 
     override fun createTaskSpecificFields(div: TagConsumer<HTMLElement>) {
         log = div.createLogField()

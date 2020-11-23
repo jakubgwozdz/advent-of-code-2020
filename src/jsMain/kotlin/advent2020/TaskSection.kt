@@ -1,19 +1,16 @@
 package advent2020
 
 import kotlinx.browser.document
-import kotlinx.browser.window
 import kotlinx.dom.addClass
 import kotlinx.dom.removeClass
 import kotlinx.html.Entities.nbsp
 import kotlinx.html.TagConsumer
 import kotlinx.html.dom.append
-import kotlinx.html.js.a
 import kotlinx.html.js.article
 import kotlinx.html.js.button
 import kotlinx.html.js.code
 import kotlinx.html.js.div
 import kotlinx.html.js.i
-import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.p
 import kotlinx.html.js.pre
 import kotlinx.html.js.progress
@@ -22,9 +19,7 @@ import kotlinx.html.js.span
 import kotlinx.html.style
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLPreElement
 import org.w3c.dom.HTMLProgressElement
-import org.w3c.dom.Range
 
 interface TaskSection : ProgressReceiver {
     fun launch()
@@ -36,7 +31,7 @@ open class GenericTaskSection(
     val puzzleContext: PuzzleContext,
     val task: PuzzleTask = { _, _ -> TODO(title) },
     val resultField: ResultField,
-    val errorField: ErrorField,
+    val errorField: ReportField,
     val progressField: ProgressField,
     val launchButton: HTMLButtonElement,
     val cancelButton: HTMLButtonElement
@@ -81,27 +76,75 @@ open class GenericTaskSection(
 
 }
 
-interface LogField {
+interface ReportField {
     fun clear()
+    fun hide()
+    fun show(message: Any?)
+    fun show(title: String, message: Any?)
     fun addLines(vararg lines: String)
 }
 
-open class SimpleLogPre(val logPre: HTMLPreElement, val historySize: Int): LogField {
-
+open class SimpleReportFigure(
+    val wholeElement: HTMLElement,
+    val titleElement: HTMLElement,
+    val preElement: HTMLElement,
+    val historySize: Int
+) : ReportField {
     private val lines = mutableListOf<String>()
     override fun clear() {
         lines.clear()
-        logPre.textContent = lines.joinToString("\n")
+        preElement.textContent = lines.joinToString("\n")
     }
 
     override fun addLines(vararg lines: String) {
-        this.lines += lines
+        this.lines += lines.flatMap { it.lines() }
         while (lines.size > historySize) this.lines.removeAt(0)
-        logPre.textContent = this.lines.joinToString("\n")
-        logPre.scrollTop = logPre.scrollHeight.toDouble()
+        preElement.textContent = this.lines.joinToString("\n")
+        preElement.scrollTop = preElement.scrollHeight.toDouble()
+        wholeElement.removeClass("is-hidden")
     }
 
+    override fun show(title: String, message: Any?) {
+        titleElement.textContent = title
+        show(message)
+    }
+
+    override fun show(message: Any?) {
+        this.lines.clear()
+        this.lines += (if (message is String) message else JSON.stringify(message, null, 2)).lines()
+        preElement.textContent = this.lines.joinToString("\n")
+        preElement.scrollTop = preElement.scrollHeight.toDouble()
+        wholeElement.removeClass("is-hidden")
+    }
+
+    override fun hide() {
+        wholeElement.addClass("is-hidden")
+    }
+
+
 }
+
+//interface LogField {
+//    fun clear()
+//    fun addLines(vararg lines: String)
+//}
+
+//open class SimpleLogPre(val logPre: HTMLPreElement, val historySize: Int) : LogField {
+//
+//    private val lines = mutableListOf<String>()
+//    override fun clear() {
+//        lines.clear()
+//        logPre.textContent = lines.joinToString("\n")
+//    }
+//
+//    override fun addLines(vararg lines: String) {
+//        this.lines += lines
+//        while (lines.size > historySize) this.lines.removeAt(0)
+//        logPre.textContent = this.lines.joinToString("\n")
+//        logPre.scrollTop = logPre.scrollHeight.toDouble()
+//    }
+//
+//}
 
 interface ProgressField {
     fun reset()
@@ -111,7 +154,7 @@ interface ProgressField {
     fun error()
 }
 
-open class SimpleProgressBar(val progressBar: HTMLProgressElement): ProgressField {
+open class SimpleProgressBar(val progressBar: HTMLProgressElement) : ProgressField {
     override fun reset() {
         progressBar.removeClass("is-danger")
         progressBar.removeClass("is-success")
@@ -140,26 +183,26 @@ open class SimpleProgressBar(val progressBar: HTMLProgressElement): ProgressFiel
 
 }
 
-interface ErrorField {
-    fun show(title: String, message: Any?)
-    fun hide()
-}
+//interface ErrorField {
+//    fun show(title: String, message: Any?)
+//    fun hide()
+//}
 
-open class ErrorFigure(
-    val errorItem: HTMLElement,
-    val errorMessage: HTMLElement,
-    val errorTag: HTMLElement
-) : ErrorField {
-    override fun show(title: String, message: Any?) {
-        errorItem.removeClass("is-hidden")
-        errorTag.textContent = JSON.stringify(message, null, 2)
-        errorMessage.textContent = title
-    }
-
-    override fun hide() {
-        errorItem.addClass("is-hidden")
-    }
-}
+//open class ErrorFigure(
+//    val errorItem: HTMLElement,
+//    val errorMessage: HTMLElement,
+//    val errorTag: HTMLElement
+//) : ErrorField {
+//    override fun show(title: String, message: Any?) {
+//        errorItem.removeClass("is-hidden")
+//        errorTag.textContent = JSON.stringify(message, null, 2)
+//        errorMessage.textContent = title
+//    }
+//
+//    override fun hide() {
+//        errorItem.addClass("is-hidden")
+//    }
+//}
 
 interface ResultField {
     fun show(result: String)
@@ -168,11 +211,11 @@ interface ResultField {
 
 open class ResultLevelItem(
     val resultItem: HTMLElement,
-    val codeElemend: HTMLElement
+    val codeElement: HTMLElement
 ) : ResultField {
     override fun show(result: String) {
         resultItem.removeClass("is-invisible")
-        codeElemend.textContent = result
+        codeElement.textContent = result
     }
 
     override fun hide() {
@@ -192,7 +235,7 @@ open class TaskSectionBuilder {
     protected lateinit var cancelButton: HTMLButtonElement
 
     protected lateinit var resultField: ResultField
-    protected lateinit var errorField: ErrorField
+    protected lateinit var errorField: ReportField
     protected lateinit var progressField: ProgressField
 
     open fun buildInBody(body: HTMLElement): TaskSection {
@@ -287,26 +330,37 @@ open class TaskSectionBuilder {
         return ResultLevelItem(resultItem, codeElem)
     }
 
-    protected open fun TagConsumer<HTMLElement>.createErrorField(): ErrorField {
-        lateinit var errorItem: HTMLElement
-        lateinit var errorMessage: HTMLElement
-        lateinit var errorTag: HTMLElement
-        errorItem = article("message is-danger is-hidden") {
+    protected open fun TagConsumer<HTMLElement>.createReportField(
+        title: String = "",
+        historySize: Int = 1000,
+        maxHeight: String? = null,
+        isDanger: Boolean = false
+    ): ReportField {
+        lateinit var wholeElement: HTMLElement
+        lateinit var titleElement: HTMLElement
+        lateinit var preElement: HTMLElement
+        wholeElement = article("message is-hidden ${if (isDanger) "is-danger " else ""}") {
             div("message-header") {
-                errorMessage = p { }
+                titleElement = p { +title }
             }
-            errorTag = pre("message-body") {
-                style = "resize: vertical; white-space: pre-wrap;"
+            preElement = pre("message-body") {
+                val extraStyle = if (maxHeight != null) "max-height: $maxHeight;" else ""
+                style = "resize: vertical; white-space: pre-wrap; $extraStyle"
             }
         }
-        return ErrorFigure(errorItem, errorMessage, errorTag)
+        return SimpleReportFigure(wholeElement, titleElement, preElement, 1000)
     }
 
-    protected open fun TagConsumer<HTMLElement>.createLogField(maxHeight: String = "30em", historySize: Int = 1000): LogField {
-        val logPre = pre("box") {
-            style = "max-height: $maxHeight; resize: vertical; white-space: pre-wrap;"
-        }
-        return SimpleLogPre(logPre, historySize)
+    protected open fun TagConsumer<HTMLElement>.createErrorField(): ReportField {
+        return createReportField(isDanger = true)
+    }
+
+    protected open fun TagConsumer<HTMLElement>.createLogField(
+        title: String = "Log",
+        maxHeight: String = "30em",
+        historySize: Int = 1000
+    ): ReportField {
+        return createReportField(title, historySize, maxHeight)
     }
 
     protected open fun TagConsumer<HTMLElement>.createProgressBar(): ProgressField {
