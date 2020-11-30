@@ -1,0 +1,25 @@
+package advent2020.${pkg}
+
+import advent2020.ProgressReceiver
+import advent2020.linesAsFlowOfLong
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectIndexed
+
+interface ${className}Part1ProgressReporter : ProgressReceiver {
+}
+
+interface ${className}Part2ProgressReporter : ProgressReceiver {
+}
+
+suspend fun part1(input: String, receiver: ProgressReceiver): String {
+    val lines = input.lines()
+
+    TODO()
+}
+
+suspend fun part2(input: String, receiver: ProgressReceiver): String {
+    val lines = input.lines()
+
+    TODO()
+}
+

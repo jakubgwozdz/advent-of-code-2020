@@ -9,13 +9,12 @@ import java.nio.file.Paths
 
 // PARAMS
 
-val day = 25
-val year = 2019
-val pkg = "day25x"
+val day = 1
+val year = 2020
+val pkg = "day01"
 
 
 // INIT
-val className = pkg.capitalize()
 val root = projectRoot()
 val cookie = readCookie(root)
 
@@ -25,89 +24,48 @@ val input = fetchInput(cookie, day, year)
 
 // CREATE FILES
 
-val tq = "\"\"\"" // helper for templates - triple quote
+val className = pkg.capitalize()
+val context = mapOf(
+    "\${pkg}" to pkg,
+    "\${className}" to className,
+    "\${input}" to input,
+)
 
 // input data in file
-
-with(root.resolve(Paths.get("src", "commonMain", "resources", "advent2020", pkg, "jakubgwozdz"))) {
-    Files.createDirectories(this.parent)
-    Files.writeString(this, input)
-}
+fileFromString(
+    root.resolve(Paths.get("src", "commonMain", "resources", "advent2020", pkg, "jakubgwozdz")),
+    input
+)
 
 // input data as kotlin variable
-
-with(root.resolve(Paths.get("src", "commonMain", "kotlin", "advent2020", pkg, "JakubGwozdz.kt"))) {
-    Files.createDirectories(this.parent)
-    val content ="""package advent2020.$pkg
-
-val ${pkg}myPuzzleInput get() = $tq
-$input$tq.trim()
-    """.trimIndent()
-    Files.writeString(this, content)
-}
+fileFromTemplate(
+    root.resolve(Paths.get("src", "commonMain", "kotlin", "advent2020", pkg, "JakubGwozdz.kt")),
+    Paths.get("commonMain.input.kt.template"),
+    context
+)
 
 // task kotlin file template
+fileFromTemplate(
+    root.resolve(Paths.get("src", "commonMain", "kotlin", "advent2020", pkg, "${className}Puzzle.kt")),
+    Paths.get("commonMain.kt.template"),
+    context
+)
 
-with(root.resolve(Paths.get("src", "commonMain", "kotlin", "advent2020", pkg, "${className}Puzzle.kt"))) {
-    Files.createDirectories(this.parent)
-    val content ="""package advent2020.$pkg
+// test template
+fileFromTemplate(
+    root.resolve(Paths.get("src", "commonTest", "kotlin", "advent2020", pkg, "${className}PuzzleTest.kt")),
+    Paths.get("commonTest.puzzleTest.kt.template"),
+    context
+)
 
-import advent2020.ProgressReceiver
-import advent2020.linesAsFlowOfLong
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectIndexed
-
-interface ${className}Part1ProgressReporter : ProgressReceiver {
-}
-
-interface ${className}Part2ProgressReporter : ProgressReceiver {
-}
-
-suspend fun part1(input: String, receiver: ProgressReceiver): String {
-    val lines = input.lines()
-
-    TODO()
-}
-
-suspend fun part2(input: String, receiver: ProgressReceiver): String {
-    val lines = input.lines()
-
-    TODO()
-}
-
-""".trimIndent()
-    Files.writeString(this, content)
-}
+// file consistency test template
+fileFromTemplate(
+    root.resolve(Paths.get("src", "jvmTest", "kotlin", "advent2020", pkg, "${className}InputConsistencyTest.kt")),
+    Paths.get("jvmTest.inputTest.kt.template"),
+    context
+)
 
 //
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // FUNCTIONS
@@ -143,4 +101,18 @@ fun fetchInput(cookie: String, day: Int, year: Int = 2020): String {
     check(resp.statusCode() in (200..299))
     return resp.body()
 
+}
+
+fun fileFromTemplate(outputPath: Path, inputPath: Path, context: Map<String, String>) {
+    val templateRegex = Regex("\\$\\{.*?\\}")
+    val template = Files.readString(inputPath)
+    val content = template.replace(templateRegex) { m ->
+        context[m.value] ?: error("unknown template variable ${m.value}")
+    }
+    fileFromString(outputPath, content)
+}
+
+fun fileFromString(outputPath: Path, content: String) {
+    Files.createDirectories(outputPath.parent)
+    Files.writeString(outputPath, content)
 }
