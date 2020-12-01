@@ -7,6 +7,21 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ${className}PuzzleTest {
+
+    @Test
+    fun examplePart1() = runTest {
+        val sampleInput = """"""
+        val actual = part1(sampleInput, emptyReceiver)
+        assertEquals("", actual)
+    }
+
+    @Test
+    fun examplePart2() = runTest {
+        val sampleInput = """"""
+        val actual = part2(sampleInput, emptyReceiver)
+        assertEquals("", actual)
+    }
+
     @Test
 //    fun jakubgwozdzPart1() = runTest {
     fun jakubgwozdzPart1() = runTestExpect(NotImplementedError::class) {

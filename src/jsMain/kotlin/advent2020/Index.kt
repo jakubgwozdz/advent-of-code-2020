@@ -3,12 +3,26 @@ package advent2020
 import kotlinx.browser.document
 import kotlinx.html.TagConsumer
 import kotlinx.html.dom.append
-import kotlinx.html.js.*
+import kotlinx.html.js.a
+import kotlinx.html.js.div
+import kotlinx.html.js.h1
+import kotlinx.html.js.h2
+import kotlinx.html.js.i
+import kotlinx.html.js.nav
+import kotlinx.html.js.p
+import kotlinx.html.js.section
+import kotlinx.html.js.strong
+import kotlinx.html.js.title
 import org.w3c.dom.HTMLElement
 
-data class PuzzleInfo(val path: String, val title:String, val day: Int, val year: Int = 2020)
+data class PuzzleInfo(val path: String, val title: String, val day: Int, val year: Int = 2020)
 
-val knownTasks by lazy { listOf(advent2020.day00.day00puzzleInfo) }
+val knownTasks by lazy {
+    listOf(
+        advent2020.day00.day00puzzleInfo,
+        advent2020.day01.day01puzzleInfo
+    )
+}
 
 @JsExport
 fun createIndex() {

@@ -26,6 +26,17 @@ interface TaskSection : ProgressReceiver {
     fun cancel()
 }
 
+class GenericTaskSectionElements(
+    val title: String,
+    val puzzleContext: PuzzleContext,
+    val task: PuzzleTask,
+    val resultField: ResultField,
+    val errorField: ReportField,
+    val progressField: ProgressField,
+    val launchButton: HTMLButtonElement,
+    val cancelButton: HTMLButtonElement
+)
+
 open class GenericTaskSection(
     val title: String,
     val puzzleContext: PuzzleContext,
@@ -36,6 +47,17 @@ open class GenericTaskSection(
     val launchButton: HTMLButtonElement,
     val cancelButton: HTMLButtonElement
 ) : TaskSection {
+
+    constructor(genericElements: GenericTaskSectionElements) : this(
+        genericElements.title,
+        genericElements.puzzleContext,
+        genericElements.task,
+        genericElements.resultField,
+        genericElements.errorField,
+        genericElements.progressField,
+        genericElements.launchButton,
+        genericElements.cancelButton
+    )
 
     val taskLauncher = BackgroundTaskLauncher()
 
@@ -285,6 +307,18 @@ open class TaskSectionBuilder {
     protected open fun createTaskSpecificFields(div: TagConsumer<HTMLElement>) {
 
     }
+
+    // helper function for deriving builders
+    protected fun genericElements() = GenericTaskSectionElements(
+        title,
+        puzzleContext,
+        task,
+        resultField,
+        errorField,
+        progressField,
+        launchButton,
+        cancelButton
+    )
 
     protected open fun constructObject(): TaskSection = GenericTaskSection(
         title,

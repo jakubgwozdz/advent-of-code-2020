@@ -3,6 +3,7 @@ package advent2020
 import kotlinx.browser.document
 import kotlinx.dom.addClass
 import kotlinx.dom.removeClass
+import kotlinx.html.classes
 import kotlinx.html.dom.append
 import kotlinx.html.js.button
 import kotlinx.html.js.div
@@ -20,7 +21,7 @@ class InputDataModal(private val htmlElement: HTMLElement) {
     fun hide() = htmlElement.removeClass("is-active")
 }
 
-fun createInputDataModal(puzzleContext: PuzzleContext):InputDataModal {
+fun createInputDataModal(puzzleContext: PuzzleContext, readOnly: Boolean = false):InputDataModal {
     lateinit var inputDataModal: HTMLElement
     lateinit var inputDataTextArea: HTMLTextAreaElement
     lateinit var saveButton: HTMLButtonElement
@@ -38,6 +39,7 @@ fun createInputDataModal(puzzleContext: PuzzleContext):InputDataModal {
                 }
                 footer("modal-card-foot") {
                     saveButton = button(classes = "button is-success") {
+                        if (readOnly) classes += "is-hidden"
                         +"Save changes"
                     }
                     cancelButton = button(classes = "button") {
