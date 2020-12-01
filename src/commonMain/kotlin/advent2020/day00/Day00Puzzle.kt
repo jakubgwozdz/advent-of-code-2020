@@ -6,7 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectIndexed
 
 interface Day00Part1ProgressReporter : ProgressReceiver {
-    suspend fun progress(no: Int, total: Int, mass:Long, fuel:Long, sum: Long)
+    suspend fun progress(no: Int, total: Int, mass: Long, fuel: Long, sum: Long)
 }
 
 suspend fun part1(input: String, receiver: ProgressReceiver): String {
@@ -17,7 +17,7 @@ suspend fun part1(input: String, receiver: ProgressReceiver): String {
         .collectIndexed { index, value ->
             val fuel = fuel(value)
             result += fuel
-            if (receiver is Day00Part1ProgressReporter) receiver.progress(index+1, lines.size, value, fuel, result)
+            if (receiver is Day00Part1ProgressReporter) receiver.progress(index + 1, lines.size, value, fuel, result)
 //            if (index > 80) error("umpf")
             delay(receiver.delay)
         }

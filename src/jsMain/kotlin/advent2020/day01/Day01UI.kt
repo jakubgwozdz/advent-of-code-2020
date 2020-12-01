@@ -21,7 +21,7 @@ val day01puzzleInfo = PuzzleInfo("day01", "Report Repair", 1, 2020)
 fun createUI() {
 
     createHeader(day01puzzleInfo)
-    createInputSectionWithModal(day01puzzleInfo, day01puzzleContext, readOnly = true)
+    createInputSectionWithModal(day01puzzleInfo, day01puzzleContext)
 
     taskSection {
         title = "Part 1"
@@ -40,14 +40,15 @@ internal class Part2Section(
     override suspend fun starting() {
         super<GenericTaskSection>.starting()
         logField.clear()
-        comparisons = 0
     }
 
-    override var comparisons: Int = 0
-
-    override suspend fun progress(no: Int, total: Int, entry: Int, match: Boolean) {
+    override suspend fun progress(no: Int, total: Int, entry: Int, comparisons: Int) {
         progressField.value(no, total)
-        logField.addLines("tested entry no $no/$total:  value=$entry, match=$match. Comparisons so far: $comparisons")
+        logField.addLines("testing entry no $no/$total:  value=$entry. Comparisons so far: $comparisons")
+    }
+
+    override suspend fun final(v1: Int, v2: Int, v3: Int, comparisons: Int) {
+        logField.addLines("found entries: $v1, $v2, $v3. Total comparisons: $comparisons")
     }
 
     override val delay: Long

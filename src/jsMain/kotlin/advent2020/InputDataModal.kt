@@ -21,7 +21,7 @@ class InputDataModal(private val htmlElement: HTMLElement) {
     fun hide() = htmlElement.removeClass("is-active")
 }
 
-fun createInputDataModal(puzzleContext: PuzzleContext, readOnly: Boolean = false):InputDataModal {
+fun createInputDataModal(puzzleContext: PuzzleContext, readOnly: Boolean = false): InputDataModal {
     lateinit var inputDataModal: HTMLElement
     lateinit var inputDataTextArea: HTMLTextAreaElement
     lateinit var saveButton: HTMLButtonElement
@@ -35,7 +35,8 @@ fun createInputDataModal(puzzleContext: PuzzleContext, readOnly: Boolean = false
                     p("modal-card-title") { +"Input Data" }
                 }
                 section("modal-card-body") {
-                    inputDataTextArea = textArea(classes = "textarea is-family-monospace", rows = "15") { +puzzleContext.input }
+                    inputDataTextArea =
+                        textArea(classes = "textarea is-family-monospace", rows = "15") { +puzzleContext.input }
                 }
                 footer("modal-card-foot") {
                     saveButton = button(classes = "button is-success") {

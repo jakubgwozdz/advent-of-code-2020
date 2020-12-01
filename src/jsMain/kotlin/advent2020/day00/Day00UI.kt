@@ -1,9 +1,17 @@
 package advent2020.day00
 
-import advent2020.*
+import advent2020.GenericTaskSection
+import advent2020.GenericTaskSectionElements
+import advent2020.PuzzleContext
+import advent2020.PuzzleInfo
+import advent2020.ReportField
+import advent2020.TaskSection
+import advent2020.TaskSectionBuilder
+import advent2020.createHeader
+import advent2020.createInputSectionWithModal
+import advent2020.taskSection
 import kotlinx.browser.document
 import kotlinx.html.TagConsumer
-import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 
 val day00puzzleContext by lazy { PuzzleContext(day00myPuzzleInput) }

@@ -70,7 +70,7 @@ open class GenericTaskSection(
 
     val taskLauncher = BackgroundTaskLauncher()
 
-    var runWithDelay:Boolean = false
+    var runWithDelay: Boolean = false
 
     override suspend fun starting() {
         console.log("Starting $title")
