@@ -21,7 +21,7 @@ suspend fun part1(input: String, receiver: ProgressReceiver = emptyReceiver): St
 internal fun findIndex(
     sortedEntries: List<Int>,
     expectedSum: Int,
-    excluded: Int? = null
+    indexOfExcluded: Int = -1
 ): Int {
     // first, edge case if half the value exists twice
     val indexOfHalf = sortedEntries.binarySearch(expectedSum / 2)
@@ -32,11 +32,10 @@ internal fun findIndex(
     }
 
     // now, edge case if excluded value existed twice, in such case we simply don't exclude at all
-    val updatedExcluded = if (excluded == null) excluded else {
-        val indexOfExcluded = sortedEntries.binarySearch(excluded)
-        if (indexOfExcluded > 0 && excluded == sortedEntries[indexOfExcluded - 1]) null
-        else if (indexOfExcluded < sortedEntries.size - 1 && excluded == sortedEntries[indexOfExcluded + 1]) null
-        else excluded
+    val updatedExcluded = if (indexOfExcluded < 0) null else {
+        if (indexOfExcluded > 0 && sortedEntries[indexOfExcluded] == sortedEntries[indexOfExcluded - 1]) null
+        else if (indexOfExcluded < sortedEntries.size - 1 && sortedEntries[indexOfExcluded] == sortedEntries[indexOfExcluded + 1]) null
+        else sortedEntries[indexOfExcluded]
     }
 
     // now the normal search
@@ -47,23 +46,25 @@ internal fun findIndex(
 
 var comparisons = 0 // comparisons counter for reporting
 
-suspend fun part2(input: String, receiver: ProgressReceiver = emptyReceiver): String {
+suspend fun part2(input: String, receiver: ProgressReceiver = object : Day01Part2ProgressReceiver{}): String {
     val lines = input.trim().lines()
     val numbers = lines.map { it.toInt() }.sorted()
-    var no = 1
+    var no = 0
     comparisons = 0
 
     var i2 = -1
 
     val i1 = numbers.indexOfFirst {
-        report(receiver, no++, numbers.size, it, comparisons)
-        i2 = findIndex(numbers, 2020 - it, it)
+        (receiver as Day01Part2ProgressReceiver).progress(no + 1, numbers.size, it, comparisons)
+        delay(receiver.delay)
+        i2 = findIndex(numbers, 2020 - it, no)
+        no++
         i2 >= 0
     }
     val v1 = numbers[i1]
     val v2 = numbers[i2]
     val v3 = 2020 - v2 - v1
-    final(receiver, v1, v2, v3, comparisons)
+    (receiver as Day01Part2ProgressReceiver).final(v1, v2, v3, comparisons)
     val result = v1 * v2 * v3
     return result.toString()
 }

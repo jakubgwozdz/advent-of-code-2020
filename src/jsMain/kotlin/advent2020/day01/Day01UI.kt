@@ -52,7 +52,7 @@ internal class Part2Section(
     }
 
     override val delay: Long
-        get() = if (runWithDelay) 3 else 0
+        get() = if (runWithDelay) 20 else 0
 
 }
 

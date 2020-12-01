@@ -73,7 +73,7 @@ class Day01PuzzleTest {
     fun duplicatedValueInPart2() = runTest {
         val numbers = listOf(1, 100, 100, 1820, 2018)
 
-        val i1 = findIndex(numbers, 1920, 100)
+        val i1 = findIndex(numbers, 1920, 1)
         val v1 = numbers[i1]
 
         assertEquals(100, v1)
@@ -81,13 +81,12 @@ class Day01PuzzleTest {
     }
 
     @Test
-    fun halfValueInPart2() = runTestExpect(IndexOutOfBoundsException::class) {
-        val numbers = listOf(100, 101, 102, 1817, 1820)
+    fun halfValueInPart2() = runTest {
+        val numbers = listOf(1,100, 101, 102, 1817, 1820)
 
-        val i1 = findIndex(numbers, 1920, 100)
-        val v1 = numbers[i1]
+        val i1 = findIndex(numbers, 1920, 1)
 
-        assertEquals(100, v1)
+        assertEquals(-1, i1)
 
     }
 
