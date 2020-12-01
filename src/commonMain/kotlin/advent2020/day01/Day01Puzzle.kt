@@ -40,8 +40,10 @@ internal fun findIndex(
 
     // now the normal search
     return sortedEntries.asSequence()
+        .let { if (indexOfExcluded > 0) it.drop(indexOfExcluded) else it }
         .takeWhile { it < expectedSum / 2 }
         .indexOfFirst { it != updatedExcluded && sortedEntries.bsContains(expectedSum - it) }
+        .let { if (indexOfExcluded > 0 && it >= 0) it + indexOfExcluded else it  }
 }
 
 var comparisons = 0 // comparisons counter for reporting
