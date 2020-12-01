@@ -25,16 +25,9 @@ fun createUI() {
 
 
 class Day00Part1Section(
-    title: String,
-    puzzleContext: PuzzleContext,
-    task: PuzzleTask = { _, _ -> TODO(title) },
-    resultField: ResultField,
-    errorField: ReportField,
-    progressField: ProgressField,
+    genericElements: GenericTaskSectionElements,
     val logField: ReportField,
-    launchButton: HTMLButtonElement,
-    cancelButton: HTMLButtonElement
-) : GenericTaskSection(title, puzzleContext, task, resultField, errorField, progressField, launchButton, cancelButton), Day00Part1ProgressReporter {
+) : GenericTaskSection(genericElements), Day00Part1ProgressReporter {
 
     override suspend fun starting() {
         super<GenericTaskSection>.starting()
@@ -42,7 +35,7 @@ class Day00Part1Section(
     }
 
     override suspend fun progress(no: Int, total: Int, mass: Long, fuel: Long, sum: Long) {
-        progressField.value(no.toDouble(), total.toDouble())
+        progressField.value(no, total)
 //        console.log("$no/$total:  mass=$mass => fuel=$fuel, sum=$sum")
         logField.addLines("$no/$total:  mass=$mass => fuel=$fuel, sum=$sum")
     }
@@ -68,15 +61,8 @@ class Day00Part1SectionBuilder : TaskSectionBuilder() {
 
     override fun constructObject(): TaskSection {
         return Day00Part1Section(
-            title,
-            puzzleContext,
-            task,
-            resultField,
-            errorField,
-            progressField,
+            genericElements(),
             log,
-            launchButton,
-            cancelButton
         )
     }
 }

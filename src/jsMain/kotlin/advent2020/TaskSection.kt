@@ -4,13 +4,18 @@ import kotlinx.browser.document
 import kotlinx.dom.addClass
 import kotlinx.dom.removeClass
 import kotlinx.html.Entities.nbsp
+import kotlinx.html.InputType.checkBox
+import kotlinx.html.LABEL
 import kotlinx.html.TagConsumer
+import kotlinx.html.classes
 import kotlinx.html.dom.append
 import kotlinx.html.js.article
 import kotlinx.html.js.button
 import kotlinx.html.js.code
 import kotlinx.html.js.div
 import kotlinx.html.js.i
+import kotlinx.html.js.input
+import kotlinx.html.js.label
 import kotlinx.html.js.p
 import kotlinx.html.js.pre
 import kotlinx.html.js.progress
@@ -19,6 +24,7 @@ import kotlinx.html.js.span
 import kotlinx.html.style
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLProgressElement
 
 interface TaskSection : ProgressReceiver {
@@ -34,6 +40,7 @@ class GenericTaskSectionElements(
     val errorField: ReportField,
     val progressField: ProgressField,
     val launchButton: HTMLButtonElement,
+    val delayCheckbox: CheckboxField,
     val cancelButton: HTMLButtonElement
 )
 
@@ -45,6 +52,7 @@ open class GenericTaskSection(
     val errorField: ReportField,
     val progressField: ProgressField,
     val launchButton: HTMLButtonElement,
+    val delayCheckbox: CheckboxField,
     val cancelButton: HTMLButtonElement
 ) : TaskSection {
 
@@ -56,10 +64,13 @@ open class GenericTaskSection(
         genericElements.errorField,
         genericElements.progressField,
         genericElements.launchButton,
+        genericElements.delayCheckbox,
         genericElements.cancelButton
     )
 
     val taskLauncher = BackgroundTaskLauncher()
+
+    var runWithDelay:Boolean = false
 
     override suspend fun starting() {
         console.log("Starting $title")
@@ -88,6 +99,7 @@ open class GenericTaskSection(
     }
 
     override fun launch() {
+        runWithDelay = delayCheckbox.state
         taskLauncher.launch(this, puzzleContext, task)
     }
 
@@ -146,32 +158,11 @@ open class SimpleReportFigure(
 
 }
 
-//interface LogField {
-//    fun clear()
-//    fun addLines(vararg lines: String)
-//}
-
-//open class SimpleLogPre(val logPre: HTMLPreElement, val historySize: Int) : LogField {
-//
-//    private val lines = mutableListOf<String>()
-//    override fun clear() {
-//        lines.clear()
-//        logPre.textContent = lines.joinToString("\n")
-//    }
-//
-//    override fun addLines(vararg lines: String) {
-//        this.lines += lines
-//        while (lines.size > historySize) this.lines.removeAt(0)
-//        logPre.textContent = this.lines.joinToString("\n")
-//        logPre.scrollTop = logPre.scrollHeight.toDouble()
-//    }
-//
-//}
-
 interface ProgressField {
     fun reset()
     fun ongoing()
     fun value(value: Double, max: Double)
+    fun value(value: Int, max: Int) = value(value.toDouble(), max.toDouble())
     fun success()
     fun error()
 }
@@ -205,26 +196,17 @@ open class SimpleProgressBar(val progressBar: HTMLProgressElement) : ProgressFie
 
 }
 
-//interface ErrorField {
-//    fun show(title: String, message: Any?)
-//    fun hide()
-//}
+interface CheckboxField {
+    var state: Boolean
+}
 
-//open class ErrorFigure(
-//    val errorItem: HTMLElement,
-//    val errorMessage: HTMLElement,
-//    val errorTag: HTMLElement
-//) : ErrorField {
-//    override fun show(title: String, message: Any?) {
-//        errorItem.removeClass("is-hidden")
-//        errorTag.textContent = JSON.stringify(message, null, 2)
-//        errorMessage.textContent = title
-//    }
-//
-//    override fun hide() {
-//        errorItem.addClass("is-hidden")
-//    }
-//}
+open class CheckboxWithLabel(val item: HTMLElement, val checkbox: HTMLInputElement) : CheckboxField {
+    override var state: Boolean
+        get() = checkbox.checked
+        set(value) {
+            checkbox.checked = value
+        }
+}
 
 interface ResultField {
     fun show(result: String)
@@ -251,6 +233,7 @@ open class TaskSectionBuilder {
     lateinit var title: String
     lateinit var puzzleContext: PuzzleContext
     var task: PuzzleTask = { _, _ -> TODO(title) }
+    var delay: Boolean? = null
     protected lateinit var htmlElement: HTMLElement
 
     protected lateinit var launchButton: HTMLButtonElement
@@ -259,6 +242,8 @@ open class TaskSectionBuilder {
     protected lateinit var resultField: ResultField
     protected lateinit var errorField: ReportField
     protected lateinit var progressField: ProgressField
+
+    protected lateinit var delayCheckbox: CheckboxField
 
     open fun buildInBody(body: HTMLElement): TaskSection {
 
@@ -275,6 +260,11 @@ open class TaskSectionBuilder {
                                     launchButton = button(classes = "button") {
                                         +"Run"
                                     }
+                                }
+                            }
+                            div("level-item") {
+                                div("control") {
+                                    delayCheckbox = createCheckboxField(delay, "Delay")
                                 }
                             }
                         }
@@ -317,6 +307,7 @@ open class TaskSectionBuilder {
         errorField,
         progressField,
         launchButton,
+        delayCheckbox,
         cancelButton
     )
 
@@ -328,6 +319,7 @@ open class TaskSectionBuilder {
         errorField,
         progressField,
         launchButton,
+        delayCheckbox,
         cancelButton
     )
 
@@ -362,6 +354,26 @@ open class TaskSectionBuilder {
         }
 
         return ResultLevelItem(resultItem, codeElem)
+    }
+
+    protected open fun TagConsumer<HTMLElement>.createCheckboxField(checked: Boolean?, label: String): CheckboxField {
+        return createCheckboxField(checked) { +" $label" }
+    }
+
+    protected open fun TagConsumer<HTMLElement>.createCheckboxField(
+        checked: Boolean?,
+        block: LABEL.() -> Unit = {}
+    ): CheckboxField {
+        lateinit var resultItem: HTMLElement
+        lateinit var checkbox: HTMLInputElement
+        resultItem = label("checkbox") {
+            if (checked == null) classes += "is-hidden"
+            checkbox = input(checkBox) {
+                this.checked = checked == true // disable for null or false
+            }
+            block()
+        }
+        return CheckboxWithLabel(resultItem, checkbox)
     }
 
     protected open fun TagConsumer<HTMLElement>.createReportField(

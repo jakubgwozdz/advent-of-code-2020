@@ -35,21 +35,23 @@ fun createUI() {
 internal class Part2Section(
     genericElements: GenericTaskSectionElements,
     val logField: ReportField,
-) : GenericTaskSection(genericElements),
-    Day01Part2ProgressReporter {
+) : GenericTaskSection(genericElements), Day01Part2ProgressReceiver {
 
     override suspend fun starting() {
         super<GenericTaskSection>.starting()
         logField.clear()
+        comparisons = 0
     }
 
+    override var comparisons: Int = 0
+
     override suspend fun progress(no: Int, total: Int, entry: Int, match: Boolean) {
-        progressField.value(no.toDouble(), total.toDouble())
-        logField.addLines("tested entry no $no/$total:  value=$entry, match=$match")
+        progressField.value(no, total)
+        logField.addLines("tested entry no $no/$total:  value=$entry, match=$match. Comparisons so far: $comparisons")
     }
 
     override val delay: Long
-        get() = 1
+        get() = if (runWithDelay) 3 else 0
 
 }
 
@@ -59,6 +61,7 @@ internal class Part2SectionBuilder : TaskSectionBuilder() {
         title = "Part 2"
         puzzleContext = day01puzzleContext
         task = ::part2
+        delay = false
     }
 
     lateinit var log: ReportField
