@@ -13,6 +13,16 @@ kotlin {
 
     js {
         browser {
+            @Suppress("EXPERIMENTAL_API_USAGE")
+            dceTask {
+                keep(
+                    "advent-of-code-2020.advent2020.day00.createUI",
+                    "advent-of-code-2020.advent2020.day01.createUI",
+                    "advent-of-code-2020.advent2020.day02.createUI",
+                    "advent-of-code-2020.advent2020.createIndex"
+                )
+            }
+
             webpackTask {
                 cssSupport.enabled = true
             }
