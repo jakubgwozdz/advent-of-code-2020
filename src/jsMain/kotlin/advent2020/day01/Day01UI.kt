@@ -5,12 +5,15 @@ import advent2020.GenericTaskSectionElements
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.ReportField
+import advent2020.SuspendingWrapper
 import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.createInputSectionWithModal
+import advent2020.day02.part1
 import advent2020.taskSection
 import kotlinx.browser.document
+import kotlinx.coroutines.delay
 import kotlinx.html.TagConsumer
 import org.w3c.dom.HTMLElement
 
@@ -26,7 +29,7 @@ fun createUI() {
     taskSection {
         title = "Part 1"
         puzzleContext = day01puzzleContext
-        task = ::part1
+        task = SuspendingWrapper(::part1)::launchWithoutReceiver
     }.buildInBody(document.body!!)
 
     Part2SectionBuilder().buildInBody(document.body!!)
@@ -45,6 +48,7 @@ internal class Part2Section(
     override suspend fun progress(no: Int, total: Int, entry: Int, comparisons: Int) {
         progressField.value(no, total)
         logField.addLines("testing entry no $no/$total:  value=$entry. Comparisons so far: $comparisons")
+        delay(delay)
     }
 
     override suspend fun final(v1: Int, v2: Int, v3: Int, comparisons: Int) {
@@ -52,7 +56,7 @@ internal class Part2Section(
     }
 
     override val delay: Long
-        get() = if (runWithDelay) 20 else 0
+        get() = if (runWithDelay) 60 else 0
 
 }
 
