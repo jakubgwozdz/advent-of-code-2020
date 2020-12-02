@@ -25,7 +25,7 @@ fun createUI() {
     taskSection {
         title = "Part 2"
         puzzleContext = ${pkg}puzzleContext
-        task = ::part1
+        task = ::part2
     }.buildInBody(document.body!!)
 
 }

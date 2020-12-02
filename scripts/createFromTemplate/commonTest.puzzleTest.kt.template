@@ -1,6 +1,5 @@
 package advent2020.${pkg}
 
-import advent2020.emptyReceiver
 import advent2020.runTest
 import advent2020.runTestExpect
 import kotlin.test.Test
@@ -11,28 +10,28 @@ class ${className}PuzzleTest {
     @Test
     fun examplePart1() = runTest {
         val sampleInput = """"""
-        val actual = part1(sampleInput, emptyReceiver)
+        val actual = part1(sampleInput)
         assertEquals("", actual)
     }
 
     @Test
     fun examplePart2() = runTest {
         val sampleInput = """"""
-        val actual = part2(sampleInput, emptyReceiver)
+        val actual = part2(sampleInput)
         assertEquals("", actual)
     }
 
     @Test
 //    fun jakubgwozdzPart1() = runTest {
     fun jakubgwozdzPart1() = runTestExpect(NotImplementedError::class) {
-        val actual = part1(${pkg}myPuzzleInput, emptyReceiver)
+        val actual = part1(${pkg}myPuzzleInput)
         assertEquals("", actual)
     }
 
     @Test
 //    fun jakubgwozdzPart2() = runTest {
     fun jakubgwozdzPart2() = runTestExpect(NotImplementedError::class) {
-        val actual = part2(${pkg}myPuzzleInput, emptyReceiver)
+        val actual = part2(${pkg}myPuzzleInput)
         assertEquals("", actual)
     }
 

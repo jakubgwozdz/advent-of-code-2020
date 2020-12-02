@@ -1,6 +1,7 @@
 package advent2020.${pkg}
 
 import advent2020.ProgressReceiver
+import advent2020.emptyReceiver
 
 interface ${className}Part1ProgressReporter : ProgressReceiver {
 }
@@ -8,13 +9,13 @@ interface ${className}Part1ProgressReporter : ProgressReceiver {
 interface ${className}Part2ProgressReporter : ProgressReceiver {
 }
 
-suspend fun part1(input: String, receiver: ProgressReceiver): String {
+suspend fun part1(input: String, receiver: ProgressReceiver = emptyReceiver): String {
     val lines = input.trim().lines()
 
     TODO()
 }
 
-suspend fun part2(input: String, receiver: ProgressReceiver): String {
+suspend fun part2(input: String, receiver: ProgressReceiver = emptyReceiver): String {
     val lines = input.trim().lines()
 
     TODO()
