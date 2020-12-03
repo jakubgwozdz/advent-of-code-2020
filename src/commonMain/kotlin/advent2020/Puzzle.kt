@@ -36,6 +36,8 @@ class SuspendingWrapper(val task: (String) -> String) {
     suspend fun launchWithoutReceiver(input: String, receiver: ProgressReceiver) = task(input)
 }
 
+fun suspending(task: (String) -> String) = SuspendingWrapper(task)::launchWithoutReceiver
+
 suspend fun List<String>.linesAsFlowOfLong() = asSequence().asFlow().map { it.toLong() }
 
 interface TaskLauncher {

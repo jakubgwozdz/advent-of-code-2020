@@ -1,43 +1,23 @@
 package advent2020.day03
 
-import advent2020.ProgressReceiver
-import advent2020.emptyReceiver
-
-interface Day03Part1ProgressReporter : ProgressReceiver {
-}
-
-interface Day03Part2ProgressReporter : ProgressReceiver {
-}
-
-
-suspend fun part1(input: String, receiver: ProgressReceiver = emptyReceiver): String {
+fun part1(input: String): String {
     val lines = input.trim().lines()
 
-    val move: (Int, String) -> Boolean = { index, line -> line[index * 3 % line.length] == '#' }
-
-    val result = trees(lines, move)
+    val result = countTrees(lines, 3, 1)
 
     return result.toString()
 }
 
-suspend fun part2(input: String, receiver: ProgressReceiver = emptyReceiver): String {
+fun part2(input: String): String {
     val lines = input.trim().lines()
 
-    val moves = listOf<(Int, String) -> Boolean>(
-        { index, line -> line[index % line.length] == '#' },
-        { index, line -> line[index * 3 % line.length] == '#' },
-        { index, line -> line[index * 5 % line.length] == '#' },
-        { index, line -> line[index * 7 % line.length] == '#' },
-        { index, line -> index % 2 == 0 && line[index / 2 % line.length] == '#' },
-    )
-
-    val result = moves.map { trees(lines, it) }.reduce(Long::times)
+    val moves = listOf(1 to 1, 3 to 1, 5 to 1, 7 to 1, 1 to 2)
+    val result = moves.map { countTrees(lines, it.first, it.second) }.reduce { a, b -> a * b }
 
     return result.toString()
 }
 
-private fun trees(
-    lines: List<String>,
-    move: (Int, String) -> Boolean
-) = lines.filterIndexed(move).count().toLong()
+private fun countTrees(lines: List<String>, x: Int, y: Int): Long = lines
+    .filterIndexed { index, line -> index % y == 0 && line[index / y * x % line.length] == '#' }
+    .count().toLong()
 
