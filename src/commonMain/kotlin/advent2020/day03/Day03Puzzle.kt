@@ -4,7 +4,7 @@ import advent2020.ProgressReceiver
 
 interface DayO3ProgressReceiver : ProgressReceiver {
     suspend fun reset(lines: List<String>, move: Vector) {}
-    suspend fun moveTo(x2: Int, y: Int, move: Vector) {}
+    suspend fun moveTo(x: Int, y: Int, move: Vector) {}
     suspend fun totalCollisions(count: Long, move: Vector) {}
 }
 
@@ -43,7 +43,7 @@ private suspend fun countTrees(
             if (y % down != 0) return@filterIndexed false
             val x = y / down * right
             val x2 = x % line.length
-            progressReceiver.moveTo(x2, y, move)
+            progressReceiver.moveTo(x, y, move)
             line[x2] == '#'
         }
         .count().toLong()

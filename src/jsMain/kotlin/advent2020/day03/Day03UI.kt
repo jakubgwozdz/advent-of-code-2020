@@ -62,8 +62,8 @@ internal class Day03Section(
         slopeTiles[move]?.reset(lines)
     }
 
-    override suspend fun moveTo(x2: Int, y: Int, move: Vector) {
-        slopeTiles[move]?.moveTo(x2, y)
+    override suspend fun moveTo(x: Int, y: Int, move: Vector) {
+        slopeTiles[move]?.moveTo(x, y)
         delayIfChecked(10)
     }
 
@@ -82,11 +82,13 @@ internal class SlopeTile(val box: HTMLDivElement, val collisionsP: HTMLParagraph
     var currentPos = 0 to 0
     val trees = mutableSetOf<Position>()
     val collisions = mutableSetOf<Position>()
+    var period = Int.MAX_VALUE
 
     override fun reset(lines: List<String>) {
         currentPos = 0 to 0
         trees.clear()
         collisions.clear()
+        period = lines.map { it.length }.distinct().single()
 
         lines.forEachIndexed { y, l ->
             l.forEachIndexed { x, c ->
@@ -99,15 +101,16 @@ internal class SlopeTile(val box: HTMLDivElement, val collisionsP: HTMLParagraph
     }
 
     override fun markCollision(x: Int, y: Int) {
-        collisions.add(x to y)
+        collisions.add(x % period to y)
         console.log("collision at ${x to y}")
         collisionsP.textContent = "Collisions: ${collisions.size}"
     }
 
     override fun moveTo(x: Int, y: Int) {
         currentPos = x to y
+        val wrapped = x % period to y
         console.log("move to ${x to y}")
-        if (trees.contains(currentPos)) markCollision(x, y)
+        if (trees.contains(wrapped)) markCollision(x, y)
     }
 
 }
