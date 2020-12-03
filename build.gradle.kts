@@ -80,6 +80,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("stdlib-js"))
                 implementation("org.jetbrains.kotlinx:kotlinx-html-js:0.7.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.4.0")
             }
         }
         val jsTest by getting {

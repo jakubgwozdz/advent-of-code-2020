@@ -1,5 +1,6 @@
 package advent2020.day01
 
+import advent2020.AnimationTimer
 import advent2020.GenericTaskSection
 import advent2020.GenericTaskSectionElements
 import advent2020.PuzzleContext
@@ -47,16 +48,12 @@ internal class Part2Section(
     override suspend fun progress(no: Int, total: Int, entry: Int, comparisons: Int) {
         progressField.value(no, total)
         logField.addLines("testing entry no $no/$total:  value=$entry. Comparisons so far: $comparisons")
-        delay(delay)
+        delayIfChecked(60)
     }
 
     override suspend fun final(v1: Int, v2: Int, v3: Int, comparisons: Int) {
         logField.addLines("found entries: $v1, $v2, $v3. Total comparisons: $comparisons")
     }
-
-    override val delay: Long
-        get() = if (runWithDelay) 60 else 0
-
 }
 
 internal class Part2SectionBuilder : TaskSectionBuilder() {

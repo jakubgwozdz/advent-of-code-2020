@@ -1,6 +1,11 @@
 package advent2020
 
 import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.dom.addClass
 import kotlinx.dom.removeClass
 import kotlinx.html.Entities.nbsp
@@ -26,6 +31,7 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLProgressElement
+import kotlin.coroutines.CoroutineContext
 
 interface TaskSection : ProgressReceiver {
     fun launch()
@@ -43,6 +49,36 @@ class GenericTaskSectionElements(
     val delayCheckbox: CheckboxField,
     val cancelButton: HTMLButtonElement
 )
+
+class TaskSectionLauncher : CoroutineScope, TaskLauncher {
+
+    var job: Job = Job()
+    var activeJob: Job? = null
+
+    override val coroutineContext: CoroutineContext
+        get() = job
+
+    override fun start(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
+        activeJob?.let { if (it.isActive) it.cancel("cancelling because rerun") }
+        activeJob = launch {
+            receiver.starting()
+            val startTime = window.performance.now()
+            try {
+                val result = task(puzzleContext.input, receiver)
+                receiver.success(result)
+            } catch (e: Throwable) {
+                receiver.error(e)
+            }
+            val endTime = window.performance.now()
+            console.log("task time ${endTime-startTime}")
+        }
+    }
+
+    override fun cancel(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
+        activeJob?.let { if (it.isActive) it.cancel("cancelling") }
+    }
+
+}
 
 open class GenericTaskSection(
     val title: String,
@@ -68,9 +104,14 @@ open class GenericTaskSection(
         genericElements.cancelButton
     )
 
-    val taskLauncher = BackgroundTaskLauncher()
+    val taskLauncher = TaskSectionLauncher()
 
     var runWithDelay: Boolean = false
+
+    val animation = AnimationTimer()
+    protected suspend fun delayIfChecked(time: Int) {
+        if (runWithDelay) animation.delay(time)
+    }
 
     override suspend fun starting() {
         console.log("Starting $title")
@@ -100,7 +141,7 @@ open class GenericTaskSection(
 
     override fun launch() {
         runWithDelay = delayCheckbox.state
-        taskLauncher.launch(this, puzzleContext, task)
+        taskLauncher.start(this, puzzleContext, task)
     }
 
     override fun cancel() {
@@ -234,6 +275,8 @@ open class TaskSectionBuilder {
     lateinit var puzzleContext: PuzzleContext
     var task: PuzzleTask = { _, _ -> TODO(title) }
     var delay: Boolean? = null
+    var resultHeading = "Result"
+
     protected lateinit var htmlElement: HTMLElement
 
     protected lateinit var launchButton: HTMLButtonElement
@@ -268,7 +311,10 @@ open class TaskSectionBuilder {
                                 }
                             }
                         }
-                        resultField = createResultField()
+                        resultField = createResultField(resultHeading)
+
+                        createTaskSpecificLevelFields(this@append)
+
                         div("level-right") {
                             div("level-item") {
                                 div("control") {
@@ -298,6 +344,8 @@ open class TaskSectionBuilder {
 
     }
 
+    protected open fun createTaskSpecificLevelFields(div: TagConsumer<HTMLElement>) { }
+
     // helper function for deriving builders
     protected fun genericElements() = GenericTaskSectionElements(
         title,
@@ -323,13 +371,13 @@ open class TaskSectionBuilder {
         cancelButton
     )
 
-    protected open fun TagConsumer<HTMLElement>.createResultField(): ResultField {
+    protected open fun TagConsumer<HTMLElement>.createResultField(heading: String = "Result"): ResultField {
         lateinit var resultItem: HTMLElement
         lateinit var codeElem: HTMLElement
         lateinit var buttonElem: HTMLElement
         resultItem = div("level-item has-text-centered is-invisible") {
             div {
-                p("heading") { +"Result: " }
+                p("heading") { +"$heading: " }
                 div("level-item has-text-centered") {
                     button(classes = "button is-small is-invisible") {
                         style = "background: 0 0; border: none;"
@@ -348,6 +396,7 @@ open class TaskSectionBuilder {
         buttonElem.onclick = {
             val range = document.createRange()
             range.selectNodeContents(codeElem)
+            //language=JavaScript
             js("window.getSelection().removeAllRanges(); window.getSelection().addRange(range)")
             val result = document.execCommand("copy")
             console.log(result)
@@ -386,6 +435,7 @@ open class TaskSectionBuilder {
         lateinit var titleElement: HTMLElement
         lateinit var preElement: HTMLElement
         wholeElement = article("message is-hidden ${if (isDanger) "is-danger " else ""}") {
+            style = fancyShadow
             div("message-header") {
                 titleElement = p { +title }
             }
