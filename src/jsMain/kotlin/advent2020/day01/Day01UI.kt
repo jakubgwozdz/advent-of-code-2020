@@ -10,7 +10,6 @@ import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.createInputSectionWithModal
-import advent2020.day02.part1
 import advent2020.taskSection
 import kotlinx.browser.document
 import kotlinx.coroutines.delay
