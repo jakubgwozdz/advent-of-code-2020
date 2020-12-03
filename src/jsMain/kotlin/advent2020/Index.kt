@@ -19,9 +19,9 @@ data class PuzzleInfo(val path: String, val title: String, val day: Int, val yea
 
 val knownTasks by lazy {
     listOf(
-        advent2020.day00.day00puzzleInfo,
         advent2020.day01.day01puzzleInfo,
         advent2020.day02.day02puzzleInfo,
+        advent2020.day03.day03puzzleInfo,
     )
 }
 

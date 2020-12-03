@@ -16,9 +16,31 @@ kotlin {
             @Suppress("EXPERIMENTAL_API_USAGE")
             dceTask {
                 keep(
-                    "advent-of-code-2020.advent2020.day00.createUI",
                     "advent-of-code-2020.advent2020.day01.createUI",
                     "advent-of-code-2020.advent2020.day02.createUI",
+                    "advent-of-code-2020.advent2020.day03.createUI",
+                    "advent-of-code-2020.advent2020.day04.createUI",
+                    "advent-of-code-2020.advent2020.day05.createUI",
+                    "advent-of-code-2020.advent2020.day06.createUI",
+                    "advent-of-code-2020.advent2020.day07.createUI",
+                    "advent-of-code-2020.advent2020.day08.createUI",
+                    "advent-of-code-2020.advent2020.day09.createUI",
+                    "advent-of-code-2020.advent2020.day10.createUI",
+                    "advent-of-code-2020.advent2020.day11.createUI",
+                    "advent-of-code-2020.advent2020.day12.createUI",
+                    "advent-of-code-2020.advent2020.day13.createUI",
+                    "advent-of-code-2020.advent2020.day14.createUI",
+                    "advent-of-code-2020.advent2020.day15.createUI",
+                    "advent-of-code-2020.advent2020.day16.createUI",
+                    "advent-of-code-2020.advent2020.day17.createUI",
+                    "advent-of-code-2020.advent2020.day18.createUI",
+                    "advent-of-code-2020.advent2020.day19.createUI",
+                    "advent-of-code-2020.advent2020.day20.createUI",
+                    "advent-of-code-2020.advent2020.day21.createUI",
+                    "advent-of-code-2020.advent2020.day22.createUI",
+                    "advent-of-code-2020.advent2020.day23.createUI",
+                    "advent-of-code-2020.advent2020.day24.createUI",
+                    "advent-of-code-2020.advent2020.day25.createUI",
                     "advent-of-code-2020.advent2020.createIndex"
                 )
             }
