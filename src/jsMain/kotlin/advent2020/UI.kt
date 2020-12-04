@@ -77,6 +77,7 @@ class AnimationTimer {
         while (dt < updatedWaitTime) {
             dt += await()
         }
+        if (i == 0) await()
         lastOverkill = window.performance.now() - expectedEndTime
 
     }

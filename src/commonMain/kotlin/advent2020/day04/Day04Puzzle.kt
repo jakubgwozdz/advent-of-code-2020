@@ -1,5 +1,6 @@
 package advent2020.day04
 
+import advent2020.ProgressReceiver
 import advent2020.day04.PassportField.byr
 import advent2020.day04.PassportField.cid
 import advent2020.day04.PassportField.ecl
@@ -9,24 +10,57 @@ import advent2020.day04.PassportField.hgt
 import advent2020.day04.PassportField.iyr
 import advent2020.day04.PassportField.pid
 
-
-fun part1(input: String): String {
-    val lines = input.trim().lineSequence()
-
-    val passports = passports(lines)
-
-    val result = passports.count(Passport::hasRequiredFields)
-
-    return result.toString()
+interface Day04ProgressReceiver : ProgressReceiver {
+    suspend fun validPassport(passport: Passport) {}
+    suspend fun invalidPassportMissingFields(passport: Passport, missingFields: Set<PassportField>) {}
+    suspend fun invalidPassportInvalidFields(passport: Passport, invalidFields: Set<PassportFieldValue>) {}
 }
 
-fun part2(input: String): String {
+val dummyReceiver = object : Day04ProgressReceiver {}
+
+suspend fun part1(input: String, receiver: ProgressReceiver = dummyReceiver): String {
+    receiver as Day04ProgressReceiver
     val lines = input.trim().lineSequence()
 
     val passports = passports(lines)
 
     val result = passports.count { passport ->
-        passport.hasRequiredFields() && passport.fields().all(PassportFieldValue::isValid)
+        val missingFields = passport.missingFields()
+        if (missingFields.isEmpty()) receiver.validPassport(passport) else receiver.invalidPassportMissingFields(passport, missingFields)
+        missingFields.isEmpty()
+    }
+
+    return result.toString()
+}
+
+suspend fun part2(input: String, receiver: ProgressReceiver = dummyReceiver): String {
+    receiver as Day04ProgressReceiver
+    val lines = input.trim().lineSequence()
+
+    val passports = passports(lines)
+
+    val result = passports.count { passport ->
+        val missingFields = passport.missingFields()
+        when(missingFields.isEmpty()) {
+            true -> {
+                val invalidFields = passport.invalidFields()
+
+                when (invalidFields.isEmpty()) {
+                    true -> {
+                        receiver.validPassport(passport)
+                        true
+                    }
+                    false -> {
+                        receiver.invalidPassportInvalidFields(passport, invalidFields)
+                        false
+                    }
+                }
+            }
+            false -> {
+                receiver.invalidPassportMissingFields(passport, missingFields)
+                false
+            }
+        }
     }
     return result.toString()
 }
@@ -34,50 +68,53 @@ fun part2(input: String): String {
 
 enum class PassportField { byr, iyr, eyr, hgt, hcl, ecl, pid, cid }
 
-typealias PassportFieldValue = Pair<PassportField, String>
-typealias PassportLine = List<PassportFieldValue>
-typealias Passport = List<PassportLine>
+data class PassportFieldValue(val field: PassportField, val value: String) {
+    constructor(kv: String) : this(PassportField.valueOf(kv.substringBefore(":")), kv.substringAfter(":"))
+}
 
-fun Passport.fields() = flatten()
-fun Passport.hasRequiredFields() = fields().map { it.first }.toSet().run { size == 8 || size == 7 && cid !in this }
+data class Passport(val lines: List<String>, val fields: List<PassportFieldValue>) {
+    constructor(lines: List<String>) : this(lines, lines.map { parseLine(it)}.flatten())
+}
 
-fun PassportFieldValue.isValid(): Boolean {
-    val (k, v) = this
-    return when (k) {
-        byr -> v.toIntOrNull() in (1920..2002)
-        iyr -> v.toIntOrNull() in (2010..2020)
-        eyr -> v.toIntOrNull() in (2020..2030)
-        hgt -> when {
-            v.endsWith("cm") -> v.dropLast(2).toIntOrNull() in (150..193)
-            v.endsWith("in") -> v.dropLast(2).toIntOrNull() in (59..76)
-            else -> false
-        }
-        hcl -> v.matches("""#[0-9a-f]{6}""".toRegex())
-        ecl -> v.matches("(amb|blu|brn|gry|grn|hzl|oth)".toRegex())
-        pid -> v.matches("""\d{9}""".toRegex())
-        cid -> true
+fun Passport.missingFields() = PassportField.values().toSet() - fields.map { it.field } - cid
+fun Passport.invalidFields() = fields.filter { !it.isValid() }.toSet()
+
+fun PassportFieldValue.isValid(): Boolean = when (field) {
+    byr -> value.toIntOrNull() in (1920..2002)
+    iyr -> value.toIntOrNull() in (2010..2020)
+    eyr -> value.toIntOrNull() in (2020..2030)
+    hgt -> when {
+        value.endsWith("cm") -> value.dropLast(2).toIntOrNull() in (150..193)
+        value.endsWith("in") -> value.dropLast(2).toIntOrNull() in (59..76)
+        else -> false
     }
+    hcl -> value.matches("""#[0-9a-f]{6}""".toRegex())
+    ecl -> value.matches("(amb|blu|brn|gry|grn|hzl|oth)".toRegex())
+    pid -> value.matches("""\d{9}""".toRegex())
+    cid -> true
 }
 
 private fun passports(lines: Sequence<String>): Sequence<Passport> = sequence {
 
-    var currentPassport = mutableListOf<PassportLine>()
+    var currentPassport = mutableListOf<String>()
 
-    lines.map { line ->
-        line.split(' ').filterNot { it.isBlank() }
-            .map { kv -> kv.split(':').let { PassportField.valueOf(it[0]) to it[1] } }
-    }
+    lines
         .forEach {
             if (it.isEmpty()) {
-                yield(currentPassport.toList())
+                yield(Passport(currentPassport.toList()))
                 currentPassport = mutableListOf()
             } else {
                 currentPassport.add(it)
             }
         }
+
     if (currentPassport.isNotEmpty()) {
-        yield(currentPassport.toList())
+        yield(Passport(currentPassport.toList()))
         currentPassport = mutableListOf()
     }
 }
+
+private fun parseLine(line: String) = line.split(' ')
+    .filterNot { it.isBlank() }
+    .map(::PassportFieldValue)
 

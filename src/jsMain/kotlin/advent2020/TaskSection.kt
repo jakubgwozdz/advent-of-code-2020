@@ -110,7 +110,7 @@ open class GenericTaskSection(
 
     val animation = AnimationTimer()
     protected suspend fun delayIfChecked(time: Int) {
-        if (runWithDelay) animation.delay(time)
+        if (runWithDelay) animation.delay(time) else animation.delay(0)
     }
 
     override suspend fun starting() {
