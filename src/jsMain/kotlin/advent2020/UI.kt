@@ -70,15 +70,18 @@ class AnimationTimer {
         return time
     }
 
-    suspend fun delay(i: Int) {
+    suspend fun delay(i: Int): Boolean {
+        val startedAt = time
         val updatedWaitTime = i - lastOverkill
         val expectedEndTime = window.performance.now() + updatedWaitTime
         var dt = 0.0
         while (dt < updatedWaitTime) {
             dt += await()
         }
-        if (i == 0) await()
-        lastOverkill = window.performance.now() - expectedEndTime
+        if (i == 0 && window.performance.now() > time + 50) await()
+        else if (i > 0) lastOverkill = window.performance.now() - expectedEndTime
+
+        return time > startedAt
 
     }
 }

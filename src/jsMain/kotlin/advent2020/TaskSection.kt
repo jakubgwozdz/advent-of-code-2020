@@ -163,20 +163,31 @@ open class SimpleReportFigure(
     val wholeElement: HTMLElement,
     val titleElement: HTMLElement,
     val preElement: HTMLElement,
-    val historySize: Int
+    val historySize: Int,
+    private var hidden: Boolean
 ) : ReportField {
     private val lines = mutableListOf<String>()
+    private var shouldUpdate = false
+
+    val timer = window.setInterval(::flush, 100)
+
+    private fun flush() {
+        val textContent = this.lines.joinToString("\n")
+        preElement.textContent = textContent
+        preElement.scrollTop = preElement.scrollHeight.toDouble()
+        shouldUpdate = false
+    }
+
     override fun clear() {
         lines.clear()
-        preElement.textContent = lines.joinToString("\n")
+        shouldUpdate = true
     }
 
     override fun addLines(vararg lines: String) {
         this.lines += lines.flatMap { it.lines() }
         while (lines.size > historySize) this.lines.removeAt(0)
-        preElement.textContent = this.lines.joinToString("\n")
-        preElement.scrollTop = preElement.scrollHeight.toDouble()
-        wholeElement.removeClass("is-hidden")
+        shouldUpdate = true
+        show()
     }
 
     override fun show(title: String, message: Any?) {
@@ -187,13 +198,21 @@ open class SimpleReportFigure(
     override fun show(message: Any?) {
         this.lines.clear()
         this.lines += (if (message is String) message else JSON.stringify(message, null, 2)).lines()
-        preElement.textContent = this.lines.joinToString("\n")
-        preElement.scrollTop = preElement.scrollHeight.toDouble()
-        wholeElement.removeClass("is-hidden")
+        shouldUpdate = true
+        show()
     }
 
+    private fun show() {
+        if (hidden)
+            wholeElement.removeClass("is-hidden")
+        hidden = false
+    }
+
+
     override fun hide() {
-        wholeElement.addClass("is-hidden")
+        if (!hidden)
+            wholeElement.addClass("is-hidden")
+        hidden = true
     }
 
 
@@ -256,15 +275,26 @@ interface ResultField {
 
 open class ResultLevelItem(
     val resultItem: HTMLElement,
-    val codeElement: HTMLElement
+    val codeElement: HTMLElement,
+    private var hidden: Boolean
 ) : ResultField {
+
     override fun show(result: String) {
-        resultItem.removeClass("is-invisible")
         codeElement.textContent = result
+        show()
     }
 
+    private fun show() {
+        if (hidden)
+            resultItem.removeClass("is-invisible")
+        hidden = false
+    }
+
+
     override fun hide() {
-        resultItem.addClass("is-invisible")
+        if (!hidden)
+            resultItem.addClass("is-invisible")
+        hidden = true
     }
 
 }
@@ -402,7 +432,7 @@ open class TaskSectionBuilder {
             console.log(result)
         }
 
-        return ResultLevelItem(resultItem, codeElem)
+        return ResultLevelItem(resultItem, codeElem, true)
     }
 
     protected open fun TagConsumer<HTMLElement>.createCheckboxField(checked: Boolean?, label: String): CheckboxField {
@@ -444,8 +474,7 @@ open class TaskSectionBuilder {
                 style = "resize: vertical; white-space: pre-wrap; $extraStyle"
             }
         }
-        return SimpleReportFigure(wholeElement, titleElement, preElement, 1000)
-    }
+        return SimpleReportFigure(wholeElement, titleElement, preElement, 1000, true)    }
 
     protected open fun TagConsumer<HTMLElement>.createErrorField(): ReportField {
         return createReportField(isDanger = true)
