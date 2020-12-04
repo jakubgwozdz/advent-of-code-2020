@@ -3,6 +3,7 @@ package advent2020.day03
 import advent2020.ProgressReceiver
 
 interface DayO3ProgressReceiver : ProgressReceiver {
+    suspend fun reset(lines: List<String>) {}
     suspend fun reset(lines: List<String>, move: Vector) {}
     suspend fun moveTo(x: Int, y: Int, move: Vector) {}
     suspend fun totalCollisions(count: Long, move: Vector) {}
@@ -22,8 +23,10 @@ val part1move: Vector = 3 to 1
 val moves: List<Vector> = listOf(1 to 1, part1move, 5 to 1, 7 to 1, 1 to 2)
 
 suspend fun part2(input: String, progressReceiver: ProgressReceiver = object : DayO3ProgressReceiver {}): String {
+    progressReceiver as DayO3ProgressReceiver
     val lines = input.trim().lines()
 
+    progressReceiver.reset(lines)
     val result = moves.map { countTrees(lines, it, progressReceiver) }.reduce { a, b -> a * b }
 
     return result.toString()

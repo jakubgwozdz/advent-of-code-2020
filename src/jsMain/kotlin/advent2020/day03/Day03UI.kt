@@ -11,15 +11,19 @@ import advent2020.createHeader
 import advent2020.createInputSectionWithModal
 import advent2020.fancyShadow
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.dom.addClass
 import kotlinx.dom.removeClass
 import kotlinx.html.Entities.nbsp
 import kotlinx.html.TagConsumer
 import kotlinx.html.js.article
+import kotlinx.html.js.canvas
 import kotlinx.html.js.div
 import kotlinx.html.js.p
 import kotlinx.html.style
 import kotlinx.html.unsafe
+import org.w3c.dom.CanvasRenderingContext2D
+import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLParagraphElement
@@ -43,6 +47,10 @@ internal class Day03Section(
     val slopeTiles: Map<Vector, SlopeField>,
 ) : GenericTaskSection(genericElements), DayO3ProgressReceiver {
 
+    override suspend fun starting() {
+        super<GenericTaskSection>.starting()
+    }
+
     override suspend fun success(result: String) {
         console.log(result)
         result2Field.show(result)
@@ -58,13 +66,31 @@ internal class Day03Section(
         }
     }
 
+    var step = 0
+    var totalSteps = 0
+    override suspend fun reset(lines: List<String>) {
+        step = 0
+        totalSteps = moves.map { lines.size / it.second }.sum()
+        progressField.value(0, totalSteps )
+    }
+
     override suspend fun reset(lines: List<String>, move: Vector) {
         slopeTiles[move]?.reset(lines)
     }
 
     override suspend fun moveTo(x: Int, y: Int, move: Vector) {
-        slopeTiles[move]?.moveTo(x, y)
-        delayIfChecked(10)
+        slopeTiles[move]?.let {
+            it.moveTo(x, y)
+            if (move == part1move) {
+                resultField.show(it.collisions.count().toString())
+            }
+        }
+        result2Field.show(
+            slopeTiles.map { it.value.collisions.count() }.filter { it != 0 }.fold(1L) { a, b -> a * b }.toString()
+        )
+        step++
+        progressField.value(step, totalSteps)
+        delayIfChecked(80)
     }
 
 }
@@ -72,16 +98,43 @@ internal class Day03Section(
 interface SlopeField {
     fun reset(lines: List<String>)
     fun markCollision(x: Int, y: Int)
+    val collisions: Set<Position>
     fun moveTo(x: Int, y: Int)
 }
 
 typealias Position = Pair<Int, Int>
 
-internal class SlopeTile(val box: HTMLDivElement, val collisionsP: HTMLParagraphElement) : SlopeField {
+internal class SlopeTile(val box: HTMLDivElement, val collisionsP: HTMLParagraphElement, val canvas: HTMLCanvasElement) : SlopeField {
+
+    private var shouldUpdate = false
+    var timer: Int? = window.setInterval(::flush, 16)
+    private fun flush() {
+        (canvas.getContext("2d") as CanvasRenderingContext2D).let{ ctx->
+            ctx.fillStyle = "#111"
+            ctx.fillRect(0.0,0.0,canvas.width.toDouble(),canvas.height.toDouble())
+            ctx.fillStyle = "#CCC"
+            ctx.font = "20px Arial"
+            ctx.fillText("\uD83E\uDDDD", 110.0, 110.0)
+            (-6..50).forEach { x->
+                (-6..50).forEach { y ->
+                    val x1 = currentPos.first + x
+                    val y1 = currentPos.second + y
+                    if (trees.contains(x1 % period to y1) )
+                        ctx.fillText("\uD83C\uDF32", 110.0 + x * 20, 110.0 + y * 20)
+                    if (collisions.contains(x1 to y1) )
+                        ctx.fillText("\uD83D\uDCA5", 110.0 + x * 20, 110.0 + y * 20)
+                }
+            }
+        }
+
+        shouldUpdate = false
+    }
+
+
 
     var currentPos = 0 to 0
     val trees = mutableSetOf<Position>()
-    val collisions = mutableSetOf<Position>()
+    override val collisions = mutableSetOf<Position>()
     var period = Int.MAX_VALUE
 
     override fun reset(lines: List<String>) {
@@ -89,6 +142,7 @@ internal class SlopeTile(val box: HTMLDivElement, val collisionsP: HTMLParagraph
         trees.clear()
         collisions.clear()
         period = lines.map { it.length }.distinct().single()
+        shouldUpdate = true
 
         lines.forEachIndexed { y, l ->
             l.forEachIndexed { x, c ->
@@ -101,7 +155,7 @@ internal class SlopeTile(val box: HTMLDivElement, val collisionsP: HTMLParagraph
     }
 
     override fun markCollision(x: Int, y: Int) {
-        collisions.add(x % period to y)
+        collisions.add(x to y)
         console.log("collision at ${x to y}")
         collisionsP.textContent = "Collisions: ${collisions.size}"
     }
@@ -111,6 +165,7 @@ internal class SlopeTile(val box: HTMLDivElement, val collisionsP: HTMLParagraph
         val wrapped = x % period to y
         console.log("move to ${x to y}")
         if (trees.contains(wrapped)) markCollision(x, y)
+        shouldUpdate = true
     }
 
 }
@@ -155,6 +210,7 @@ internal class Day03SectionBuilder : TaskSectionBuilder() {
 
     protected fun TagConsumer<HTMLElement>.createSlopeTile(vector: Vector): SlopeField {
         lateinit var box: HTMLDivElement
+        lateinit var canvas: HTMLCanvasElement
         lateinit var collisionsP: HTMLParagraphElement
         div("tile is-parent is-4") {
             article("tile is-child box") {
@@ -165,7 +221,14 @@ internal class Day03SectionBuilder : TaskSectionBuilder() {
 
 
                 box = div("box") {
-                    style = "background-color: #000; position:relative; overflow:hidden; height:20rem"
+                    style = "height:25rem; background-color: #222;  position:relative; overflow:hidden; padding:0"
+
+                    canvas = canvas {
+                        width = "1024"
+                        height = "1024"
+                        style = "position: absolute;"
+                    }
+
 //                    day03myPuzzleInput.trim().lines().forEachIndexed { y, l ->
 //                        l.forEachIndexed { x, c ->
 //                            if (c == '#') {
@@ -182,7 +245,7 @@ internal class Day03SectionBuilder : TaskSectionBuilder() {
                 }
             }
         }
-        return SlopeTile(box, collisionsP)
+        return SlopeTile(box, collisionsP, canvas)
     }
 
     override fun constructObject(): TaskSection {

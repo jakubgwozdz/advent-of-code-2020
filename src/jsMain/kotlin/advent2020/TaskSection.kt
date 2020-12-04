@@ -106,7 +106,7 @@ open class GenericTaskSection(
 
     val taskLauncher = TaskSectionLauncher()
 
-    var runWithDelay: Boolean = false
+    val runWithDelay: Boolean get() = delayCheckbox.state
 
     val animation = AnimationTimer()
     protected suspend fun delayIfChecked(time: Int) {
@@ -140,7 +140,7 @@ open class GenericTaskSection(
     }
 
     override fun launch() {
-        runWithDelay = delayCheckbox.state
+//        runWithDelay = delayCheckbox.state
         taskLauncher.start(this, puzzleContext, task)
     }
 
@@ -168,8 +168,7 @@ open class SimpleReportFigure(
 ) : ReportField {
     private val lines = mutableListOf<String>()
     private var shouldUpdate = false
-
-    val timer = window.setInterval(::flush, 100)
+    var timer: Int? = null
 
     private fun flush() {
         val textContent = this.lines.joinToString("\n")
@@ -203,15 +202,19 @@ open class SimpleReportFigure(
     }
 
     private fun show() {
-        if (hidden)
+        if (hidden || timer == null) {
             wholeElement.removeClass("is-hidden")
+            timer = window.setInterval(::flush, 100)
+        }
         hidden = false
     }
 
 
     override fun hide() {
-        if (!hidden)
+        if (!hidden) {
             wholeElement.addClass("is-hidden")
+            timer?.let { window.clearInterval(it) }
+        }
         hidden = true
     }
 
@@ -444,15 +447,17 @@ open class TaskSectionBuilder {
         block: LABEL.() -> Unit = {}
     ): CheckboxField {
         lateinit var resultItem: HTMLElement
-        lateinit var checkbox: HTMLInputElement
+        lateinit var checkboxElem: HTMLInputElement
         resultItem = label("checkbox") {
             if (checked == null) classes += "is-hidden"
-            checkbox = input(checkBox) {
+            checkboxElem = input(checkBox) {
                 this.checked = checked == true // disable for null or false
             }
             block()
         }
-        return CheckboxWithLabel(resultItem, checkbox)
+        val checkboxWithLabel = CheckboxWithLabel(resultItem, checkboxElem)
+//        checkboxElem.onclick = { checkboxWithLabel.}
+        return checkboxWithLabel
     }
 
     protected open fun TagConsumer<HTMLElement>.createReportField(
