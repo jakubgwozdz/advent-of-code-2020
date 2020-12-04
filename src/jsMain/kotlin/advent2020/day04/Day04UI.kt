@@ -9,7 +9,6 @@ import advent2020.ResultField
 import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
-import advent2020.createInputSectionWithModal
 import kotlinx.browser.document
 import kotlinx.html.TagConsumer
 import org.w3c.dom.HTMLElement
@@ -20,8 +19,7 @@ val day04puzzleInfo = PuzzleInfo("day04", "Passport Processing", 4, 2020)
 @JsExport
 fun createUI() {
 
-    createHeader(day04puzzleInfo)
-    createInputSectionWithModal(day04puzzleInfo, day04puzzleContext, readOnly = true)
+    createHeader(day04puzzleInfo, day04puzzleContext, readOnly = true)
 
     day04taskSection {
         title = "Part 1"

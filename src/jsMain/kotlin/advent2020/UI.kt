@@ -6,21 +6,26 @@ import kotlinx.coroutines.awaitAnimationFrame
 import kotlinx.html.TagConsumer
 import kotlinx.html.dom.append
 import kotlinx.html.js.a
+import kotlinx.html.js.button
 import kotlinx.html.js.div
 import kotlinx.html.js.h1
 import kotlinx.html.js.h2
 import kotlinx.html.js.i
 import kotlinx.html.js.nav
+import kotlinx.html.js.onClickFunction
+import kotlinx.html.js.p
 import kotlinx.html.js.title
 import org.w3c.dom.HTMLElement
 
 
-fun createHeader(puzzleInfo: PuzzleInfo) {
+fun createHeader(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext, readOnly: Boolean = false) {
     document.head!!.append { title { +"${puzzleInfo.day}: ${puzzleInfo.title}" } }
-    document.body!!.append { createHeader(puzzleInfo) }
+    document.body!!.append { createHeader(puzzleInfo, puzzleContext, readOnly) }
 }
 
-private fun TagConsumer<HTMLElement>.createHeader(puzzleInfo: PuzzleInfo) {
+private fun TagConsumer<HTMLElement>.createHeader(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext, readOnly: Boolean = false) {
+    val inputDataModal = createInputDataModal(puzzleInfo, puzzleContext, readOnly)
+
     nav("navbar") {
         div("container") {
             div("navbar-brand") {
@@ -30,6 +35,18 @@ private fun TagConsumer<HTMLElement>.createHeader(puzzleInfo: PuzzleInfo) {
                         h2("subtitle") { +"Day ${puzzleInfo.day} of Advent of Code ${puzzleInfo.year}" }
                     }
                 }
+                div("navbar-item has-text-centered") {
+                    div {
+                        p("heading") { +"Input Data" }
+                        div("control") {
+                            button(classes = "button") {
+                                +if (readOnly) "View" else "Edit"
+                                onClickFunction = { inputDataModal.show() }
+                            }
+                        }
+                    }
+                }
+
             }
             div("navbar-menu") {
                 div("navbar-end") {

@@ -8,7 +8,6 @@ import advent2020.ResultField
 import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
-import advent2020.createInputSectionWithModal
 import advent2020.fancyShadow
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -34,8 +33,7 @@ val day03puzzleInfo = PuzzleInfo("day03", "Toboggan Trajectory", 3, 2020)
 @JsExport
 fun createUI() {
 
-    createHeader(day03puzzleInfo)
-    createInputSectionWithModal(day03puzzleInfo, day03puzzleContext)
+    createHeader(day03puzzleInfo, day03puzzleContext)
 
     Day03SectionBuilder().buildInBody(document.body!!)
 

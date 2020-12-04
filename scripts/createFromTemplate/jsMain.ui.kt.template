@@ -3,7 +3,6 @@ package advent2020.${pkg}
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.createHeader
-import advent2020.createInputSectionWithModal
 import advent2020.taskSection
 import kotlinx.browser.document
 
@@ -13,8 +12,7 @@ val ${pkg}puzzleInfo = PuzzleInfo("${pkg}", "Report Repair", ${day}, ${year})
 @JsExport
 fun createUI() {
 
-    createHeader(${pkg}puzzleInfo)
-    createInputSectionWithModal(${pkg}puzzleInfo, ${pkg}puzzleContext, readOnly = true)
+    createHeader(${pkg}puzzleInfo, ${pkg}puzzleContext, readOnly = true)
 
     taskSection {
         title = "Part 1"

@@ -5,6 +5,7 @@ import kotlinx.dom.addClass
 import kotlinx.dom.removeClass
 import kotlinx.html.classes
 import kotlinx.html.dom.append
+import kotlinx.html.js.a
 import kotlinx.html.js.button
 import kotlinx.html.js.div
 import kotlinx.html.js.footer
@@ -21,7 +22,7 @@ class InputDataModal(private val htmlElement: HTMLElement) {
     fun hide() = htmlElement.removeClass("is-active")
 }
 
-fun createInputDataModal(puzzleContext: PuzzleContext, readOnly: Boolean = false): InputDataModal {
+fun createInputDataModal(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext, readOnly: Boolean = false): InputDataModal {
     lateinit var inputDataModal: HTMLElement
     lateinit var inputDataTextArea: HTMLTextAreaElement
     lateinit var saveButton: HTMLButtonElement
@@ -33,6 +34,14 @@ fun createInputDataModal(puzzleContext: PuzzleContext, readOnly: Boolean = false
             div("modal-card") {
                 header("modal-card-head") {
                     p("modal-card-title") { +"Input Data" }
+                    div("content") {
+                        p {
+                            if (readOnly) classes += "is-hidden"
+                            +"(Use the content from "
+                            a("https://adventofcode.com/${puzzleInfo.year}/day/${puzzleInfo.day}/input") { +"adventofcode.com" }
+                            +" if you're logged in)"
+                        }
+                    }
                 }
                 section("modal-card-body") {
                     inputDataTextArea =

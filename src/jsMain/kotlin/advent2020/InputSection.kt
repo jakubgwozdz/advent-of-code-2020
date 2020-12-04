@@ -11,11 +11,6 @@ import kotlinx.html.js.p
 import kotlinx.html.js.section
 import org.w3c.dom.HTMLElement
 
-fun createInputSectionWithModal(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext, readOnly: Boolean = false) {
-    val inputDataModal = createInputDataModal(puzzleContext, readOnly)
-    createVisibleInputSection(puzzleInfo, inputDataModal, readOnly)
-}
-
 fun createVisibleInputSection(
     puzzleInfo: PuzzleInfo,
     inputDataModal: InputDataModal,
@@ -38,14 +33,6 @@ fun createVisibleInputSection(
                                 }
                             }
                         }
-                    }
-                }
-                div("content") {
-                    if (readOnly) classes += "is-hidden"
-                    p {
-                        +"(Use the content from "
-                        a("https://adventofcode.com/${puzzleInfo.year}/day/${puzzleInfo.day}/input") { +"adventofcode.com" }
-                        +" if you're logged in)"
                     }
                 }
             }
