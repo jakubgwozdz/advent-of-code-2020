@@ -15,7 +15,7 @@ val day02puzzleInfo = PuzzleInfo("day02", "Password Philosophy", 2, 2020)
 fun createUI() {
 
     createHeader(day02puzzleInfo)
-    createInputSectionWithModal(day02puzzleInfo, day02puzzleContext, readOnly = true)
+    createInputSectionWithModal(day02puzzleInfo, day02puzzleContext)
 
     taskSection {
         title = "Part 1"
