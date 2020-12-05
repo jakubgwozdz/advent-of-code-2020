@@ -28,7 +28,7 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLParagraphElement
 
 val day03puzzleContext by lazy { PuzzleContext(day03myPuzzleInput) }
-val day03puzzleInfo = PuzzleInfo("day03", "Toboggan Trajectory", 3, 2020)
+val day03puzzleInfo = PuzzleInfo("day03", "Toboggan Trajectory (Visual)", 3, 2020)
 
 @JsExport
 fun createUI() {

@@ -15,13 +15,12 @@ import kotlinx.html.TagConsumer
 import org.w3c.dom.HTMLElement
 
 val day01puzzleContext by lazy { PuzzleContext(day01myPuzzleInput) }
-val day01puzzleInfo = PuzzleInfo("day01", "Report Repair", 1, 2020)
+val day01puzzleInfo = PuzzleInfo("day01", "Report Repair (Logs)", 1, 2020)
 
 @JsExport
 fun createUI() {
 
     createHeader(day01puzzleInfo, day01puzzleContext)
-//    createInputSectionWithModal(day01puzzleInfo, day01puzzleContext)
 
     taskSection {
         title = "Part 1"
