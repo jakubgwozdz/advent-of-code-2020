@@ -1,8 +1,7 @@
 package advent2020.day05
 
-fun decode(input: String): Int {
-    return input.asSequence().fold(0) { a, c -> a * 2 + if (c == 'B' || c == 'R') 1 else 0 }
-}
+fun decode(input: String) =
+    input.fold(0) { a, c -> a * 2 + if (c == 'B' || c == 'R') 1 else 0 }
 
 
 fun part1(input: String): String {
