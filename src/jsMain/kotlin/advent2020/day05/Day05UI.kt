@@ -116,7 +116,7 @@ internal class Day05Part2SectionBuilder : TaskSectionBuilder() {
         with(div) {
             div("has-text-centered") {
                 canvasElem = canvas {
-                    width = "450"
+                    width = "270"
                     height = "10"
                 }
             }
