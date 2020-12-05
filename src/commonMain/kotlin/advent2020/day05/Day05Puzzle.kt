@@ -2,9 +2,6 @@ package advent2020.day05
 
 fun decode(input: String): Int {
     return input.asSequence().fold(0) { a, c -> a * 2 + if (c == 'B' || c == 'R') 1 else 0 }
-//    val row = input.asSequence().take(7).fold(0) { a, c -> a * 2 + if (c == 'B') 1 else 0 }
-//    val col = input.asSequence().drop(7).fold(0) { a, c -> a * 2 + if (c == 'R') 1 else 0 }
-//    return row * 8 + col
 }
 
 
