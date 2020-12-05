@@ -213,7 +213,7 @@ internal class Day03SectionBuilder : TaskSectionBuilder() {
         div("tile is-parent is-4") {
             article("tile is-child box") {
                 style = fancyShadow
-                div("container") {
+                div("has-centered-text") {
                     div { p("heading") { +"Slope: right ${vector.first}; down ${vector.second}" } }
                 }
 
@@ -238,7 +238,7 @@ internal class Day03SectionBuilder : TaskSectionBuilder() {
 //                        }
 //                    }
                 }
-                div("container") {
+                div("has-centered-text") {
                     div { collisionsP = p("heading") { +nbsp } }
                 }
             }
