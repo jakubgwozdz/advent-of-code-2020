@@ -24,6 +24,7 @@ val knownTasks by lazy {
         advent2020.day03.day03puzzleInfo,
         advent2020.day04.day04puzzleInfo,
         advent2020.day05.day05puzzleInfo,
+        advent2020.day06.day06puzzleInfo,
     )
 }
 

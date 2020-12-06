@@ -9,6 +9,8 @@ import advent2020.day04.PassportField.hcl
 import advent2020.day04.PassportField.hgt
 import advent2020.day04.PassportField.iyr
 import advent2020.day04.PassportField.pid
+import advent2020.utils.groupSequence
+import advent2020.utils.groups
 
 interface Day04ProgressReceiver : ProgressReceiver {
     suspend fun validPassport(passport: Passport) {}
@@ -20,9 +22,8 @@ val dummyReceiver = object : Day04ProgressReceiver {}
 
 suspend fun part1(input: String, receiver: ProgressReceiver = dummyReceiver): String {
     receiver as Day04ProgressReceiver
-    val lines = input.trim().lineSequence()
 
-    val passports = passports(lines)
+    val passports = input.groupSequence().map(::Passport)
 
     val result = passports.count { passport ->
         val missingFields = passport.missingFields()
@@ -35,9 +36,8 @@ suspend fun part1(input: String, receiver: ProgressReceiver = dummyReceiver): St
 
 suspend fun part2(input: String, receiver: ProgressReceiver = dummyReceiver): String {
     receiver as Day04ProgressReceiver
-    val lines = input.trim().lineSequence()
 
-    val passports = passports(lines)
+    val passports = input.groupSequence().map(::Passport)
 
     val result = passports.count { passport ->
         val missingFields = passport.missingFields()
@@ -92,26 +92,6 @@ fun PassportFieldValue.isValid(): Boolean = when (field) {
     ecl -> value.matches("(amb|blu|brn|gry|grn|hzl|oth)".toRegex())
     pid -> value.matches("""\d{9}""".toRegex())
     cid -> true
-}
-
-private fun passports(lines: Sequence<String>): Sequence<Passport> = sequence {
-
-    var currentPassport = mutableListOf<String>()
-
-    lines
-        .forEach {
-            if (it.isEmpty()) {
-                yield(Passport(currentPassport.toList()))
-                currentPassport = mutableListOf()
-            } else {
-                currentPassport.add(it)
-            }
-        }
-
-    if (currentPassport.isNotEmpty()) {
-        yield(Passport(currentPassport.toList()))
-        currentPassport = mutableListOf()
-    }
 }
 
 private fun parseLine(line: String) = line.split(' ')
