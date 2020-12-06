@@ -6,7 +6,7 @@ fun part1(input: String): String {
 
     val result = input.groupSequence()
         .map {
-            it.map(String::toSet).reduce { acc, person -> acc.union(person.toSet()) }.size
+            it.map(String::toSet).reduce { acc, person -> acc.union(person) }.size
         }
         .sum()
 
@@ -19,7 +19,7 @@ fun part2(input: String): String {
 
     val result = input.groupSequence()
         .map {
-            it.map(String::toSet).reduce { acc, person -> acc.intersect(person.toSet()) }.size
+            it.map(String::toSet).reduce { acc, person -> acc.intersect(person) }.size
         }
         .sum()
 
