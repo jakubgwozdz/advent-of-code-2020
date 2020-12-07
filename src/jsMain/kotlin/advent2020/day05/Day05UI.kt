@@ -19,7 +19,8 @@ fun createUI() {
     createHeader(day05puzzleInfo, day05puzzleContext, readOnly = true)
 
     taskSection {
-        title = "Part 1 - highest seatId"
+        title = "Part 1"
+        subtitle = "Highest seatId"
         puzzleContext = day05puzzleContext
         task = suspending(::part1)
     }.buildInBody(document.body!!)
@@ -104,7 +105,8 @@ internal class Day05Part2Section(
 
 internal class Day05Part2SectionBuilder : TaskSectionBuilder() {
     init {
-        title = "Part 2 - missing seatId"
+        title = "Part 2"
+        subtitle = "Missing seatId"
         puzzleContext = day05puzzleContext
         task = ::part2
         delay = true

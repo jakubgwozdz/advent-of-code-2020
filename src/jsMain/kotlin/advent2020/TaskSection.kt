@@ -40,6 +40,7 @@ interface TaskSection : ProgressReceiver {
 
 class GenericTaskSectionElements(
     val title: String,
+    val subtitle: String?,
     val puzzleContext: PuzzleContext,
     val task: PuzzleTask,
     val resultField: ResultField,
@@ -47,7 +48,7 @@ class GenericTaskSectionElements(
     val progressField: ProgressField,
     val launchButton: HTMLButtonElement,
     val delayCheckbox: CheckboxField,
-    val cancelButton: HTMLButtonElement
+    val cancelButton: HTMLButtonElement,
 )
 
 class TaskSectionLauncher : CoroutineScope, TaskLauncher {
@@ -70,7 +71,7 @@ class TaskSectionLauncher : CoroutineScope, TaskLauncher {
                 receiver.error(e)
             }
             val endTime = window.performance.now()
-            console.log("task time ${endTime-startTime}")
+            console.log("task time ${endTime - startTime}")
         }
     }
 
@@ -82,6 +83,7 @@ class TaskSectionLauncher : CoroutineScope, TaskLauncher {
 
 open class GenericTaskSection(
     val title: String,
+    val subtitle: String?,
     val puzzleContext: PuzzleContext,
     val task: PuzzleTask = { _, _ -> TODO(title) },
     val resultField: ResultField,
@@ -89,11 +91,12 @@ open class GenericTaskSection(
     val progressField: ProgressField,
     val launchButton: HTMLButtonElement,
     val delayCheckbox: CheckboxField,
-    val cancelButton: HTMLButtonElement
+    val cancelButton: HTMLButtonElement,
 ) : TaskSection {
 
     constructor(genericElements: GenericTaskSectionElements) : this(
         genericElements.title,
+        genericElements.subtitle,
         genericElements.puzzleContext,
         genericElements.task,
         genericElements.resultField,
@@ -164,7 +167,7 @@ open class SimpleReportFigure(
     val titleElement: HTMLElement,
     val preElement: HTMLElement,
     val historySize: Int,
-    private var hidden: Boolean
+    private var hidden: Boolean,
 ) : ReportField {
     private val lines = mutableListOf<String>()
     private var shouldUpdate = false
@@ -279,7 +282,7 @@ interface ResultField {
 open class ResultLevelItem(
     val resultItem: HTMLElement,
     val codeElement: HTMLElement,
-    private var hidden: Boolean
+    private var hidden: Boolean,
 ) : ResultField {
 
     override fun show(result: String) {
@@ -305,6 +308,7 @@ open class ResultLevelItem(
 open class TaskSectionBuilder {
 
     lateinit var title: String
+    var subtitle: String? = null
     lateinit var puzzleContext: PuzzleContext
     var task: PuzzleTask = { _, _ -> TODO(title) }
     var delay: Boolean? = null
@@ -329,7 +333,9 @@ open class TaskSectionBuilder {
                     div("level") {
                         div("level-left") {
                             div("level-item") {
-                                p("title is-3") { +title }
+                                div {
+                                    p("title") { +title }
+                                }
                             }
                             div("level-item") {
                                 div("control") {
@@ -357,6 +363,8 @@ open class TaskSectionBuilder {
                             }
                         }
                     }
+                    subtitle?.let { p("subtitle") { +it } }
+
                     progressField = createProgressBar()
 
                     errorField = createErrorField()
@@ -377,11 +385,12 @@ open class TaskSectionBuilder {
 
     }
 
-    protected open fun createTaskSpecificLevelFields(div: TagConsumer<HTMLElement>) { }
+    protected open fun createTaskSpecificLevelFields(div: TagConsumer<HTMLElement>) {}
 
     // helper function for deriving builders
     protected fun genericElements() = GenericTaskSectionElements(
         title,
+        subtitle,
         puzzleContext,
         task,
         resultField,
@@ -394,6 +403,7 @@ open class TaskSectionBuilder {
 
     protected open fun constructObject(): TaskSection = GenericTaskSection(
         title,
+        subtitle,
         puzzleContext,
         task,
         resultField,
@@ -444,7 +454,7 @@ open class TaskSectionBuilder {
 
     protected open fun TagConsumer<HTMLElement>.createCheckboxField(
         checked: Boolean?,
-        block: LABEL.() -> Unit = {}
+        block: LABEL.() -> Unit = {},
     ): CheckboxField {
         lateinit var resultItem: HTMLElement
         lateinit var checkboxElem: HTMLInputElement
@@ -464,7 +474,7 @@ open class TaskSectionBuilder {
         title: String = "",
         historySize: Int = 1000,
         maxHeight: String? = null,
-        isDanger: Boolean = false
+        isDanger: Boolean = false,
     ): ReportField {
         lateinit var wholeElement: HTMLElement
         lateinit var titleElement: HTMLElement
@@ -479,7 +489,8 @@ open class TaskSectionBuilder {
                 style = "resize: vertical; white-space: pre-wrap; $extraStyle"
             }
         }
-        return SimpleReportFigure(wholeElement, titleElement, preElement, 1000, true)    }
+        return SimpleReportFigure(wholeElement, titleElement, preElement, 1000, true)
+    }
 
     protected open fun TagConsumer<HTMLElement>.createErrorField(): ReportField {
         return createReportField(isDanger = true)
@@ -488,7 +499,7 @@ open class TaskSectionBuilder {
     protected open fun TagConsumer<HTMLElement>.createLogField(
         title: String = "Log",
         maxHeight: String = "30em",
-        historySize: Int = 1000
+        historySize: Int = 1000,
     ): ReportField {
         return createReportField(title, historySize, maxHeight)
     }

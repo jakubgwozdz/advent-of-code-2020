@@ -9,9 +9,9 @@ import java.nio.file.Paths
 
 // PARAMS
 
-val day = 6
+val day = 7
 val year = 2020
-val pkg = "day06"
+val pkg = "day07"
 
 
 // INIT
@@ -20,7 +20,7 @@ val cookie = readCookie(root)
 
 // FETCH
 
-val input = fetchInput(cookie, day, year)
+val input = try { fetchInput(cookie, day, year) } catch (e: Exception) { e.printStackTrace(); "<FAKE INPUT>"}
 
 // CREATE FILES
 
@@ -43,42 +43,48 @@ fileFromString(
 fileFromTemplate(
     root.resolve(Paths.get("src", "commonMain", "kotlin", "advent2020", pkg, "JakubGwozdz.kt")),
     Paths.get("commonMain.input.kt.template"),
-    context
+    context,
+    false
 )
 
 // file consistency test template
 fileFromTemplate(
     root.resolve(Paths.get("src", "jvmTest", "kotlin", "advent2020", pkg, "${className}InputConsistencyTest.kt")),
     Paths.get("jvmTest.inputTest.kt.template"),
-    context
+    context,
+    false
 )
 
 // task kotlin file template
 fileFromTemplate(
     root.resolve(Paths.get("src", "commonMain", "kotlin", "advent2020", pkg, "${className}Puzzle.kt")),
     Paths.get("commonMain.kt.template"),
-    context
+    context,
+    false
 )
 
 // test template
 fileFromTemplate(
     root.resolve(Paths.get("src", "commonTest", "kotlin", "advent2020", pkg, "${className}PuzzleTest.kt")),
     Paths.get("commonTest.puzzleTest.kt.template"),
-    context
+    context,
+    false
 )
 
 // UI class template
 fileFromTemplate(
     root.resolve(Paths.get("src", "jsMain", "kotlin", "advent2020", pkg, "${className}UI.kt")),
     Paths.get("jsMain.ui.kt.template"),
-    context
+    context,
+    false
 )
 
 // index.html template
 fileFromTemplate(
     root.resolve(Paths.get("src", "jsMain", "resources", pkg, "index.html")),
     Paths.get("jsMain.index.html.template"),
-    context
+    context,
+    false
 )
 
 
@@ -120,7 +126,11 @@ fun fetchInput(cookie: String, day: Int, year: Int = 2020): String {
 
 }
 
-fun fileFromTemplate(outputPath: Path, inputPath: Path, context: Map<String, String>) {
+fun fileFromTemplate(outputPath: Path, inputPath: Path, context: Map<String, String>, overwrite: Boolean) {
+    if (!overwrite && Files.exists(outputPath)) {
+        println("skipping ${inputPath.fileName} as $outputPath  exists")
+    }
+
     println("reading template from $inputPath ...")
     val templateRegex = Regex("\\$\\{.*?\\}")
     val template = Files.readString(inputPath)
