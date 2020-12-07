@@ -7,7 +7,7 @@ import advent2020.PuzzleInfo
 import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
-import advent2020.readResource
+import advent2020.readResourceInCurrentPackage
 import advent2020.suspending
 import advent2020.taskSection
 import kotlinx.browser.document
@@ -19,7 +19,7 @@ import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
 
-val day05puzzleContext by lazy { PuzzleContext(readResource("day05")) }
+val day05puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
 val day05puzzleInfo = PuzzleInfo("day05", "Binary Boarding (Visual)", 5, 2020)
 
 @JsExport

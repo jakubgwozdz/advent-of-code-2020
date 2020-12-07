@@ -3,12 +3,12 @@ package advent2020.day06
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.createHeader
-import advent2020.readResource
+import advent2020.readResourceInCurrentPackage
 import advent2020.suspending
 import advent2020.taskSection
 import kotlinx.browser.document
 
-val day06puzzleContext by lazy { PuzzleContext(readResource("day06")) }
+val day06puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
 val day06puzzleInfo = PuzzleInfo("day06", "Custom Customs", 6, 2020)
 
 @JsExport

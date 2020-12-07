@@ -9,7 +9,7 @@ import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.fancyShadow
-import advent2020.readResource
+import advent2020.readResourceInCurrentPackage
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.addClass
@@ -28,7 +28,7 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLParagraphElement
 
-val day03puzzleContext by lazy { PuzzleContext(readResource("day03")) }
+val day03puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
 val day03puzzleInfo = PuzzleInfo("day03", "Toboggan Trajectory (Visual)", 3, 2020)
 
 @JsExport
