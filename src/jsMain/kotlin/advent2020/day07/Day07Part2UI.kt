@@ -3,12 +3,10 @@ package advent2020.day07
 import advent2020.GenericTaskSection
 import advent2020.GenericTaskSectionElements
 import advent2020.TaskSectionBuilder
-import kotlinx.html.Entities.nbsp
 import kotlinx.html.TagConsumer
 import kotlinx.html.br
 import kotlinx.html.dom.append
 import kotlinx.html.js.div
-import kotlinx.html.js.span
 import kotlinx.html.style
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
@@ -18,16 +16,26 @@ class Day07Part2Section(genericElements: GenericTaskSectionElements, val divElem
     Day07ProgressLogger {
 
     private val outerInnerMap = mutableMapOf<String, MutableList<Triple<String, Int, Int>>>()
-    private val outerDivMap = mutableMapOf<String, HTMLDivElement>()
+    private val bagDivMap = mutableMapOf<String, HTMLDivElement>()
 
-    override suspend fun foundContaining(outerBag: String, innerBag: String, number: Int?, inOne: Int?) {
-        outerInnerMap.getOrPut(outerBag) { mutableListOf() }.add(Triple(innerBag, number!!, inOne!!))
+    override suspend fun foundContaining(
+        outerBag: String,
+        innerBag: String,
+        number: Int?,
+        inOne: Int?
+    ) {
+        outerInnerMap.getOrPut(outerBag) { mutableListOf() }
+            .add(Triple(innerBag, number!!, inOne!!))
         val total = outerInnerMap[outerBag]!!.map { it.second * (1 + it.third) }.sum()
 
-        outerDivMap[outerBag]?.let { divElem.removeChild(it); outerDivMap.remove(outerBag) }
+        bagDivMap[outerBag]?.let { divElem.removeChild(it); bagDivMap.remove(outerBag) }
+        outerInnerMap[outerBag]?.forEach { (innerBag, _, _) ->
+            bagDivMap[innerBag]?.let { divElem.removeChild(it); bagDivMap.remove(innerBag) }
+        }
+
         divElem.append {
 
-            outerDivMap[outerBag] = div("level") {
+            bagDivMap[outerBag] = div("level") {
                 div("level-item") {
                     style = """justify-content:flex-start;flex-shrink: inherit;"""
                     bagPresentation(outerBag, 1, outerInnerMap)
@@ -67,7 +75,7 @@ class Day07Part2Section(genericElements: GenericTaskSectionElements, val divElem
             divElem.removeChild(divElem.lastChild!!);
         }
         outerInnerMap.clear()
-        outerDivMap.clear()
+        bagDivMap.clear()
     }
 }
 
@@ -76,13 +84,15 @@ class Day07Part2SectionBuilder : TaskSectionBuilder() {
 
     lateinit var divElem: HTMLDivElement
 
-    override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) = with(bodyBuilder) {
-        divElem = div { }
-    }
+    override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) =
+        with(bodyBuilder) {
+            divElem = div { }
+        }
 
 
     override fun constructObject() = Day07Part2Section(genericElements(), divElem)
 }
 
-fun day07part2Section(op: Day07Part2SectionBuilder.() -> Unit) = Day07Part2SectionBuilder().apply(op)
+fun day07part2Section(op: Day07Part2SectionBuilder.() -> Unit) =
+    Day07Part2SectionBuilder().apply(op)
 

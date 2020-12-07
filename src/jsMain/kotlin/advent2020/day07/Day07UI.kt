@@ -29,6 +29,11 @@ fun createUI() {
     margin-bottom: 5px;
 }
 
+.bag-with-id {
+    float:right;
+    margin-left: 5px;
+}
+
 .bag-desc {
     float: left;
     margin-left: 5px;
