@@ -19,10 +19,11 @@ fun createUI() {
 
     //language=CSS
     val style = """.bag { 
-    padding: 0.5rem; 
-    border: 1px solid white; 
-    text-shadow:1px 1px 2px black;
-    box-shadow: inset 0 0 2px 0 black; 
+    padding: 0.5rem;
+    border: 1px solid rgba(10,10,10,.1);
+    border-radius: 5px;
+    text-shadow: 1px 1px 2px #282f2f;
+    box-shadow: 4px 4px 14px 4px #282f2f;
     float: right;
     margin-left: 5px;
     margin-bottom: 5px;
