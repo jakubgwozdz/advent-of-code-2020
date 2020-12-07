@@ -1,6 +1,6 @@
 package advent2020.day05
 
-import advent2020.ProgressReceiver
+import advent2020.ProgressLogger
 
 fun decode(input: String) =
     input.fold(0) { a, c -> a * 2 + if (c == 'B' || c == 'R') 1 else 0 }
@@ -12,18 +12,18 @@ fun part1(input: String): String {
     return result.toString()
 }
 
-interface Day05Part2ProgressReceiver : ProgressReceiver {
+interface Day05Part2ProgressLogger : ProgressLogger {
     suspend fun foundSeat(no: Int, total: Int, seatId: Int, seatCode: String) {}
 }
 
 suspend fun part2(
     input: String,
-    receiver: ProgressReceiver = object : Day05Part2ProgressReceiver {}
+    logger: ProgressLogger = object : Day05Part2ProgressLogger {}
 ): String {
-    receiver as Day05Part2ProgressReceiver
+    logger as Day05Part2ProgressLogger
     val lines = input.trim().lines()
     val allSeats = lines.mapIndexed { i, v ->
-        decode(v).also { receiver.foundSeat(i, lines.size, seatId = it, seatCode = v) }
+        decode(v).also { logger.foundSeat(i, lines.size, seatId = it, seatCode = v) }
     }.sorted()
 
     var leftId: Int? = null

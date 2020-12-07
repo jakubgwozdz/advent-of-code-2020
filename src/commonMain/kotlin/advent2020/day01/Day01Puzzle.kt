@@ -1,6 +1,6 @@
 package advent2020.day01
 
-import advent2020.ProgressReceiver
+import advent2020.ProgressLogger
 
 var comparisons = 0 // comparisons counter for reporting
 
@@ -40,14 +40,14 @@ fun part1(input: String): String {
 }
 
 
-interface Day01Part2ProgressReceiver : ProgressReceiver {
+interface Day01Part2ProgressLogger : ProgressLogger {
     suspend fun progress(no: Int, total: Int, entry: Int, comparisons: Int) {}
     suspend fun final(v1: Int, v2: Int, v3: Int, comparisons: Int) {}
 }
 
-suspend fun part2(input: String, receiver: ProgressReceiver = object : Day01Part2ProgressReceiver {}): String {
+suspend fun part2(input: String, logger: ProgressLogger = object : Day01Part2ProgressLogger {}): String {
 
-    receiver as Day01Part2ProgressReceiver
+    logger as Day01Part2ProgressLogger
     comparisons = 0
     val lines = input.trim().lines()
     val sortedEntries = lines.map { it.toInt() }.sorted()
@@ -56,7 +56,7 @@ suspend fun part2(input: String, receiver: ProgressReceiver = object : Day01Part
     var i2 = -1
     while (i2 < 0 && i1 < sortedEntries.size) {
         i1++
-        receiver.progress(i1 + 1, sortedEntries.size, sortedEntries[i1], comparisons)
+        logger.progress(i1 + 1, sortedEntries.size, sortedEntries[i1], comparisons)
         i2 = findIndex(sortedEntries, 2020 - sortedEntries[i1], i1)
     }
     val v1 = sortedEntries[i1]
@@ -64,6 +64,6 @@ suspend fun part2(input: String, receiver: ProgressReceiver = object : Day01Part
     val v3 = 2020 - v2 - v1
     val result = v1 * v2 * v3
 
-    receiver.final(v1, v2, v3, comparisons)
+    logger.final(v1, v2, v3, comparisons)
     return result.toString()
 }

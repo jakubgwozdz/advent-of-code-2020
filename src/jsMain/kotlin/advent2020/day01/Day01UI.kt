@@ -34,7 +34,7 @@ fun createUI() {
 internal class Part2Section(
     genericElements: GenericTaskSectionElements,
     val logField: ReportField,
-) : GenericTaskSection(genericElements), Day01Part2ProgressReceiver {
+) : GenericTaskSection(genericElements), Day01Part2ProgressLogger {
 
     override suspend fun starting() {
         super<GenericTaskSection>.starting()
@@ -58,7 +58,7 @@ internal class Part2SectionBuilder : TaskSectionBuilder() {
         title = "Part 2"
         puzzleContext = day01puzzleContext
         task = ::part2
-        delay = false
+        delay = true
     }
 
     lateinit var log: ReportField

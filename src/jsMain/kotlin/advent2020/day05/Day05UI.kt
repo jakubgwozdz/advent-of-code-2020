@@ -32,7 +32,7 @@ fun createUI() {
 internal class Day05Part2Section(
     genericElements: GenericTaskSectionElements,
     val canvas: HTMLCanvasElement
-) : GenericTaskSection(genericElements), Day05Part2ProgressReceiver {
+) : GenericTaskSection(genericElements), Day05Part2ProgressLogger {
 
     private var shouldUpdate = false
     var timer: Int? = window.setInterval(::flush, 16)

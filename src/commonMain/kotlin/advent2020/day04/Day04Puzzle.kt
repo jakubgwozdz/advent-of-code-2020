@@ -1,6 +1,6 @@
 package advent2020.day04
 
-import advent2020.ProgressReceiver
+import advent2020.ProgressLogger
 import advent2020.day04.PassportField.byr
 import advent2020.day04.PassportField.cid
 import advent2020.day04.PassportField.ecl
@@ -10,32 +10,31 @@ import advent2020.day04.PassportField.hgt
 import advent2020.day04.PassportField.iyr
 import advent2020.day04.PassportField.pid
 import advent2020.utils.groupSequence
-import advent2020.utils.groups
 
-interface Day04ProgressReceiver : ProgressReceiver {
+interface Day04ProgressLogger : ProgressLogger {
     suspend fun validPassport(passport: Passport) {}
     suspend fun invalidPassportMissingFields(passport: Passport, missingFields: Set<PassportField>) {}
     suspend fun invalidPassportInvalidFields(passport: Passport, invalidFields: Set<PassportFieldValue>) {}
 }
 
-val dummyReceiver = object : Day04ProgressReceiver {}
+val dummyReceiver = object : Day04ProgressLogger {}
 
-suspend fun part1(input: String, receiver: ProgressReceiver = dummyReceiver): String {
-    receiver as Day04ProgressReceiver
+suspend fun part1(input: String, logger: ProgressLogger = dummyReceiver): String {
+    logger as Day04ProgressLogger
 
     val passports = input.groupSequence().map(::Passport)
 
     val result = passports.count { passport ->
         val missingFields = passport.missingFields()
-        if (missingFields.isEmpty()) receiver.validPassport(passport) else receiver.invalidPassportMissingFields(passport, missingFields)
+        if (missingFields.isEmpty()) logger.validPassport(passport) else logger.invalidPassportMissingFields(passport, missingFields)
         missingFields.isEmpty()
     }
 
     return result.toString()
 }
 
-suspend fun part2(input: String, receiver: ProgressReceiver = dummyReceiver): String {
-    receiver as Day04ProgressReceiver
+suspend fun part2(input: String, logger: ProgressLogger = dummyReceiver): String {
+    logger as Day04ProgressLogger
 
     val passports = input.groupSequence().map(::Passport)
 
@@ -47,17 +46,17 @@ suspend fun part2(input: String, receiver: ProgressReceiver = dummyReceiver): St
 
                 when (invalidFields.isEmpty()) {
                     true -> {
-                        receiver.validPassport(passport)
+                        logger.validPassport(passport)
                         true
                     }
                     false -> {
-                        receiver.invalidPassportInvalidFields(passport, invalidFields)
+                        logger.invalidPassportInvalidFields(passport, invalidFields)
                         false
                     }
                 }
             }
             false -> {
-                receiver.invalidPassportMissingFields(passport, missingFields)
+                logger.invalidPassportMissingFields(passport, missingFields)
                 false
             }
         }

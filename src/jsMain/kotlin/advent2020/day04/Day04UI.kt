@@ -40,7 +40,7 @@ internal class Day04TaskSection(
     val logField: ReportField,
     val withMissingField: ResultField,
     val withInvalidField: ResultField,
-) : GenericTaskSection(genericElements), Day04ProgressReceiver {
+) : GenericTaskSection(genericElements), Day04ProgressLogger {
 
     var valid = 0
     var withInvalid = 0

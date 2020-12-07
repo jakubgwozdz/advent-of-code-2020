@@ -43,7 +43,7 @@ internal class Day03Section(
     genericElements: GenericTaskSectionElements,
     val result2Field: ResultField,
     val slopeTiles: Map<Vector, SlopeField>,
-) : GenericTaskSection(genericElements), DayO3ProgressReceiver {
+) : GenericTaskSection(genericElements), DayO3ProgressLogger {
 
     override suspend fun starting() {
         super<GenericTaskSection>.starting()

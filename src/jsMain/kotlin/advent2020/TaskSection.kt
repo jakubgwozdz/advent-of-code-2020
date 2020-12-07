@@ -33,7 +33,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLProgressElement
 import kotlin.coroutines.CoroutineContext
 
-interface TaskSection : ProgressReceiver {
+interface TaskSection : ProgressLogger {
     fun launch()
     fun cancel()
 }
@@ -59,23 +59,23 @@ class TaskSectionLauncher : CoroutineScope, TaskLauncher {
     override val coroutineContext: CoroutineContext
         get() = job
 
-    override fun start(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
+    override fun start(logger: ProgressLogger, puzzleContext: PuzzleContext, task: PuzzleTask) {
         activeJob?.let { if (it.isActive) it.cancel("cancelling because rerun") }
         activeJob = launch {
-            receiver.starting()
+            logger.starting()
             val startTime = window.performance.now()
             try {
-                val result = task(puzzleContext.input, receiver)
-                receiver.success(result)
+                val result = task(puzzleContext.input, logger)
+                logger.success(result)
             } catch (e: Throwable) {
-                receiver.error(e)
+                logger.error(e)
             }
             val endTime = window.performance.now()
             console.log("task time ${endTime - startTime}")
         }
     }
 
-    override fun cancel(receiver: ProgressReceiver, puzzleContext: PuzzleContext, task: PuzzleTask) {
+    override fun cancel(logger: ProgressLogger, puzzleContext: PuzzleContext, task: PuzzleTask) {
         activeJob?.let { if (it.isActive) it.cancel("cancelling") }
     }
 

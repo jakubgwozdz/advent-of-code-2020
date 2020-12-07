@@ -1,5 +1,7 @@
 package advent2020.day07
 
+import advent2020.ProgressLogger
+
 val outerRegex = """(\w+ \w+) bags contain (.*)\.""".toRegex()
 val innerRegex = """(\d+) (\w+ \w+) (bag|bags)""".toRegex()
 
@@ -13,6 +15,8 @@ fun parseRules(input: String) = input.trim().lines()
             .toMap()
     }
     .toMap()
+
+interface Part1ProgressLogger : ProgressLogger
 
 fun part1(input: String): String {
     val rules = parseRules(input)

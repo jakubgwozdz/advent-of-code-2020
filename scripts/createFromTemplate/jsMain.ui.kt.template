@@ -3,11 +3,12 @@ package advent2020.${pkg}
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.createHeader
+import advent2020.suspending
 import advent2020.taskSection
 import kotlinx.browser.document
 
 val ${pkg}puzzleContext by lazy { PuzzleContext(${pkg}myPuzzleInput) }
-val ${pkg}puzzleInfo = PuzzleInfo("${pkg}", "Report Repair", ${day}, ${year})
+val ${pkg}puzzleInfo = PuzzleInfo("${pkg}", "<TITLE>", ${day}, ${year})
 
 @JsExport
 fun createUI() {
@@ -17,13 +18,13 @@ fun createUI() {
     taskSection {
         title = "Part 1"
         puzzleContext = ${pkg}puzzleContext
-        task = ::part1
+        task = suspending(::part1)
     }.buildInBody(document.body!!)
 
     taskSection {
         title = "Part 2"
         puzzleContext = ${pkg}puzzleContext
-        task = ::part2
+        task = suspending(::part2)
     }.buildInBody(document.body!!)
 
 }
