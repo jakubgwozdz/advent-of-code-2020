@@ -30,7 +30,7 @@ fun part1(input: String): String {
             .filterKeys { it !in possibilities }
             .filterValues { current in it }
             .forEach { (outerBag, _) ->
-                println("adding $outerBag as it can contain $current")
+//                println("adding $outerBag as it can contain $current")
                 possibilities.add(outerBag)
                 toCheck.add(outerBag)
             }

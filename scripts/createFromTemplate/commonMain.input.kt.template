@@ -1,3 +1,0 @@
-package advent2020.${pkg}
-
-val ${pkg}myPuzzleInput get() = """${input}"""

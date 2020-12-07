@@ -1,9 +1,7 @@
 package advent2020
 
 import kotlinx.browser.document
-import kotlinx.html.classes
 import kotlinx.html.dom.append
-import kotlinx.html.js.a
 import kotlinx.html.js.button
 import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
@@ -14,7 +12,7 @@ import org.w3c.dom.HTMLElement
 fun createVisibleInputSection(
     puzzleInfo: PuzzleInfo,
     inputDataModal: InputDataModal,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
 ): InputSection {
     lateinit var htmlElement: HTMLElement
     document.body!!.append {

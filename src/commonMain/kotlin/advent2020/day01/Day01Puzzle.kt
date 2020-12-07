@@ -7,7 +7,7 @@ var comparisons = 0 // comparisons counter for reporting
 internal fun findIndex(
     sortedEntries: List<Int>,
     expectedSum: Int,
-    indexOfExcluded: Int = -1
+    indexOfExcluded: Int = -1,
 ): Int {
 
     var startIndex = indexOfExcluded + 1

@@ -4,10 +4,11 @@ import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.SuspendingWrapper
 import advent2020.createHeader
+import advent2020.readResource
 import advent2020.taskSection
 import kotlinx.browser.document
 
-val day02puzzleContext by lazy { PuzzleContext(day02myPuzzleInput) }
+val day02puzzleContext by lazy { PuzzleContext(readResource("day02")) }
 val day02puzzleInfo = PuzzleInfo("day02", "Password Philosophy", 2, 2020)
 
 @JsExport

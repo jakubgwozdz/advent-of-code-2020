@@ -115,4 +115,20 @@ kotlin {
     tasks.getByName("jvmTest", Test::class) {
         useJUnitPlatform()
     }
+
+    // copied from https://github.com/DaanVandenBosch/kotlin-js-karma-resources-test/blob/fix/build.gradle.kts
+    val generateKarmaConfig = tasks.register("generateKarmaConfig") {
+        val outputFile = file("karma.config.d/karma.config.generated.js")
+
+        outputs.file(outputFile)
+
+        outputFile.printWriter().use { writer ->
+            writer.println("var PROJECT_PATH = '${projectDir.absolutePath.replace("\\", "\\\\")}';")
+        }
+    }
+
+    tasks.getByName("jsBrowserTest") {
+        dependsOn(generateKarmaConfig)
+    }
 }
+

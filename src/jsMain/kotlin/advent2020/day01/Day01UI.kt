@@ -9,12 +9,13 @@ import advent2020.SuspendingWrapper
 import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
+import advent2020.readResource
 import advent2020.taskSection
 import kotlinx.browser.document
 import kotlinx.html.TagConsumer
 import org.w3c.dom.HTMLElement
 
-val day01puzzleContext by lazy { PuzzleContext(day01myPuzzleInput) }
+val day01puzzleContext by lazy { PuzzleContext(readResource("day01")) }
 val day01puzzleInfo = PuzzleInfo("day01", "Report Repair (Logs)", 1, 2020)
 
 @JsExport

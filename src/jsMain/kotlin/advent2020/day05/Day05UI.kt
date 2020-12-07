@@ -1,6 +1,15 @@
 package advent2020.day05
 
-import advent2020.*
+import advent2020.GenericTaskSection
+import advent2020.GenericTaskSectionElements
+import advent2020.PuzzleContext
+import advent2020.PuzzleInfo
+import advent2020.TaskSection
+import advent2020.TaskSectionBuilder
+import advent2020.createHeader
+import advent2020.readResource
+import advent2020.suspending
+import advent2020.taskSection
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.html.TagConsumer
@@ -10,13 +19,13 @@ import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
 
-val day05puzzleContext by lazy { PuzzleContext(day05myPuzzleInput) }
+val day05puzzleContext by lazy { PuzzleContext(readResource("day05")) }
 val day05puzzleInfo = PuzzleInfo("day05", "Binary Boarding (Visual)", 5, 2020)
 
 @JsExport
 fun createUI() {
 
-    createHeader(day05puzzleInfo, day05puzzleContext, readOnly = true)
+    createHeader(day05puzzleInfo, day05puzzleContext)
 
     taskSection {
         title = "Part 1"
@@ -31,7 +40,7 @@ fun createUI() {
 
 internal class Day05Part2Section(
     genericElements: GenericTaskSectionElements,
-    val canvas: HTMLCanvasElement
+    val canvas: HTMLCanvasElement,
 ) : GenericTaskSection(genericElements), Day05Part2ProgressLogger {
 
     private var shouldUpdate = false
@@ -48,8 +57,8 @@ internal class Day05Part2Section(
 
     private fun flush() {
         (canvas.getContext("2d") as CanvasRenderingContext2D).let { ctx ->
-            val frontRow = seats.keys.minOrNull()?.let { it/8}
-            val backRow = seats.keys.maxOrNull()?.let { it/8}
+            val frontRow = seats.keys.minOrNull()?.let { it / 8 }
+            val backRow = seats.keys.maxOrNull()?.let { it / 8 }
 
             val xScale = 25.0
             val yScale = 18.0
@@ -74,15 +83,15 @@ internal class Day05Part2Section(
                         val siteId = row * 8 + column
                         if (siteId in seats) {
                             ctx.fillStyle = "#963"
-                            ctx.fillRect(x+1, y+1, 19.0, 14.0)
+                            ctx.fillRect(x + 1, y + 1, 19.0, 14.0)
                             ctx.fillStyle = "#321"
                         } else
-                        if (siteId !in seats && siteId+1 in seats && siteId-1 in seats) {
-                            ctx.fillStyle = "#fff"
-                        } else {
-                            ctx.fillStyle = "#000"
-                        }
-                        ctx.fillText("$siteId", x+2, y+12)
+                            if (siteId !in seats && siteId + 1 in seats && siteId - 1 in seats) {
+                                ctx.fillStyle = "#fff"
+                            } else {
+                                ctx.fillStyle = "#000"
+                            }
+                        ctx.fillText("$siteId", x + 2, y + 12)
 
                     }
                 }

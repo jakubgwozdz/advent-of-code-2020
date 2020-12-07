@@ -35,25 +35,10 @@ val context = mapOf(
 
 // input data in file
 fileFromString(
-    root.resolve(Paths.get("src", "commonMain", "resources", "advent2020", pkg, "jakubgwozdz")),
+    root.resolve(Paths.get("src", "commonMain", "resources", "advent2020", pkg, "jakubgwozdz.txt")),
     input
 )
 
-// input data as kotlin variable
-fileFromTemplate(
-    root.resolve(Paths.get("src", "commonMain", "kotlin", "advent2020", pkg, "JakubGwozdz.kt")),
-    Paths.get("commonMain.input.kt.template"),
-    context,
-    false
-)
-
-// file consistency test template
-fileFromTemplate(
-    root.resolve(Paths.get("src", "jvmTest", "kotlin", "advent2020", pkg, "${className}InputConsistencyTest.kt")),
-    Paths.get("jvmTest.inputTest.kt.template"),
-    context,
-    false
-)
 
 // task kotlin file template
 fileFromTemplate(
@@ -129,6 +114,7 @@ fun fetchInput(cookie: String, day: Int, year: Int = 2020): String {
 fun fileFromTemplate(outputPath: Path, inputPath: Path, context: Map<String, String>, overwrite: Boolean) {
     if (!overwrite && Files.exists(outputPath)) {
         println("skipping ${inputPath.fileName} as $outputPath  exists")
+        return
     }
 
     println("reading template from $inputPath ...")

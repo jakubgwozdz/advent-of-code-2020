@@ -1,2 +1,0 @@
-package advent2020
-

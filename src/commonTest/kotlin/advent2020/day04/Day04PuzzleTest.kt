@@ -1,10 +1,13 @@
 package advent2020.day04
 
+import advent2020.readResource
 import advent2020.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class Day04PuzzleTest {
+
+    val myPuzzleInput by lazy { readResource("day04") }
 
     @Test
     fun examplePart1() = runTest {
@@ -70,13 +73,13 @@ class Day04PuzzleTest {
 
     @Test
     fun jakubgwozdzPart1() = runTest {
-        val actual = part1(day04myPuzzleInput)
+        val actual = part1(myPuzzleInput)
         assertEquals("192", actual)
     }
 
     @Test
     fun jakubgwozdzPart2() = runTest {
-        val actual = part2(day04myPuzzleInput)
+        val actual = part2(myPuzzleInput)
         assertEquals("101", actual)
     }
 

@@ -26,7 +26,8 @@ suspend fun part1(input: String, logger: ProgressLogger = dummyReceiver): String
 
     val result = passports.count { passport ->
         val missingFields = passport.missingFields()
-        if (missingFields.isEmpty()) logger.validPassport(passport) else logger.invalidPassportMissingFields(passport, missingFields)
+        if (missingFields.isEmpty()) logger.validPassport(passport) else logger.invalidPassportMissingFields(passport,
+            missingFields)
         missingFields.isEmpty()
     }
 
@@ -40,7 +41,7 @@ suspend fun part2(input: String, logger: ProgressLogger = dummyReceiver): String
 
     val result = passports.count { passport ->
         val missingFields = passport.missingFields()
-        when(missingFields.isEmpty()) {
+        when (missingFields.isEmpty()) {
             true -> {
                 val invalidFields = passport.invalidFields()
 
@@ -72,7 +73,7 @@ data class PassportFieldValue(val field: PassportField, val value: String) {
 }
 
 data class Passport(val lines: List<String>, val fields: List<PassportFieldValue>) {
-    constructor(lines: List<String>) : this(lines, lines.map { parseLine(it)}.flatten())
+    constructor(lines: List<String>) : this(lines, lines.map { parseLine(it) }.flatten())
 }
 
 fun Passport.missingFields() = PassportField.values().toSet() - fields.map { it.field } - cid

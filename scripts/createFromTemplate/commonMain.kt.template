@@ -1,12 +1,12 @@
 package advent2020.${pkg}
 
-suspend fun part1(input: String): String {
+fun part1(input: String): String {
     val lines = input.trim().lines()
 
     TODO()
 }
 
-suspend fun part2(input: String): String {
+fun part2(input: String): String {
     val lines = input.trim().lines()
 
     TODO()

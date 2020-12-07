@@ -9,6 +9,7 @@ import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.fancyShadow
+import advent2020.readResource
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.dom.addClass
@@ -27,7 +28,7 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLParagraphElement
 
-val day03puzzleContext by lazy { PuzzleContext(day03myPuzzleInput) }
+val day03puzzleContext by lazy { PuzzleContext(readResource("day03")) }
 val day03puzzleInfo = PuzzleInfo("day03", "Toboggan Trajectory (Visual)", 3, 2020)
 
 @JsExport
@@ -69,7 +70,7 @@ internal class Day03Section(
     override suspend fun reset(lines: List<String>) {
         step = 0
         totalSteps = moves.map { lines.size / it.second }.sum()
-        progressField.value(0, totalSteps )
+        progressField.value(0, totalSteps)
     }
 
     override suspend fun reset(lines: List<String>, move: Vector) {
@@ -102,24 +103,28 @@ interface SlopeField {
 
 typealias Position = Pair<Int, Int>
 
-internal class SlopeTile(val box: HTMLDivElement, val collisionsP: HTMLParagraphElement, val canvas: HTMLCanvasElement) : SlopeField {
+internal class SlopeTile(
+    val box: HTMLDivElement,
+    val collisionsP: HTMLParagraphElement,
+    val canvas: HTMLCanvasElement,
+) : SlopeField {
 
     private var shouldUpdate = false
     var timer: Int? = window.setInterval(::flush, 16)
     private fun flush() {
-        (canvas.getContext("2d") as CanvasRenderingContext2D).let{ ctx->
+        (canvas.getContext("2d") as CanvasRenderingContext2D).let { ctx ->
             ctx.fillStyle = "#111"
-            ctx.fillRect(0.0,0.0,canvas.width.toDouble(),canvas.height.toDouble())
+            ctx.fillRect(0.0, 0.0, canvas.width.toDouble(), canvas.height.toDouble())
             ctx.fillStyle = "#CCC"
             ctx.font = "20px Arial"
             ctx.fillText("\uD83E\uDDDD", 110.0, 110.0)
-            (-6..50).forEach { x->
+            (-6..50).forEach { x ->
                 (-6..50).forEach { y ->
                     val x1 = currentPos.first + x
                     val y1 = currentPos.second + y
-                    if (trees.contains(x1 % period to y1) )
+                    if (trees.contains(x1 % period to y1))
                         ctx.fillText("\uD83C\uDF32", 110.0 + x * 20, 110.0 + y * 20)
-                    if (collisions.contains(x1 to y1) )
+                    if (collisions.contains(x1 to y1))
                         ctx.fillText("\uD83D\uDCA5", 110.0 + x * 20, 110.0 + y * 20)
                 }
             }
@@ -127,7 +132,6 @@ internal class SlopeTile(val box: HTMLDivElement, val collisionsP: HTMLParagraph
 
         shouldUpdate = false
     }
-
 
 
     var currentPos = 0 to 0

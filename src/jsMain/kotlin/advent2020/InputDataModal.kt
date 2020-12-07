@@ -22,7 +22,11 @@ class InputDataModal(private val htmlElement: HTMLElement) {
     fun hide() = htmlElement.removeClass("is-active")
 }
 
-fun createInputDataModal(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext, readOnly: Boolean = false): InputDataModal {
+fun createInputDataModal(
+    puzzleInfo: PuzzleInfo,
+    puzzleContext: PuzzleContext,
+    readOnly: Boolean = false,
+): InputDataModal {
     lateinit var inputDataModal: HTMLElement
     lateinit var inputDataTextArea: HTMLTextAreaElement
     lateinit var saveButton: HTMLButtonElement

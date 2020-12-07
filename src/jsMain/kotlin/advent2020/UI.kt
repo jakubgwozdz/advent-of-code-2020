@@ -23,7 +23,11 @@ fun createHeader(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext, readOnly:
     document.body!!.append { createHeader(puzzleInfo, puzzleContext, readOnly) }
 }
 
-private fun TagConsumer<HTMLElement>.createHeader(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext, readOnly: Boolean = false) {
+private fun TagConsumer<HTMLElement>.createHeader(
+    puzzleInfo: PuzzleInfo,
+    puzzleContext: PuzzleContext,
+    readOnly: Boolean = false,
+) {
     val inputDataModal = createInputDataModal(puzzleInfo, puzzleContext, readOnly)
 
     nav("navbar") {

@@ -1,11 +1,14 @@
 package advent2020.${pkg}
 
+import advent2020.readResource
 import advent2020.runTest
 import advent2020.runTestExpect
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ${className}PuzzleTest {
+
+    val myPuzzleInput by lazy { readResource("${pkg}") }
 
     @Test
     fun examplePart1() = runTest {
@@ -15,15 +18,15 @@ class ${className}PuzzleTest {
     }
 
     @Test
-    fun examplePart2() = runTest {
+    fun examplePart2() = runTestExpect(NotImplementedError::class) {
         val sampleInput = """"""
         val actual = part2(sampleInput)
         assertEquals("", actual)
     }
 
     @Test
-//    fun jakubgwozdzPart1() = runTest {
-    fun jakubgwozdzPart1() = runTestExpect(NotImplementedError::class) {
+    fun jakubgwozdzPart1() = runTest {
+//    fun jakubgwozdzPart1() = runTestExpect(NotImplementedError::class) {
         val actual = part1(${pkg}myPuzzleInput)
         assertEquals("", actual)
     }

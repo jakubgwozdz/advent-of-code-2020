@@ -9,11 +9,12 @@ import advent2020.ResultField
 import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
+import advent2020.readResource
 import kotlinx.browser.document
 import kotlinx.html.TagConsumer
 import org.w3c.dom.HTMLElement
 
-val day04puzzleContext by lazy { PuzzleContext(day04myPuzzleInput) }
+val day04puzzleContext by lazy { PuzzleContext(readResource("day04")) }
 val day04puzzleInfo = PuzzleInfo("day04", "Passport Processing (Logs)", 4, 2020)
 
 @JsExport
@@ -70,7 +71,9 @@ internal class Day04TaskSection(
     }
 
     override suspend fun invalidPassportInvalidFields(passport: Passport, invalidFields: Set<PassportFieldValue>) {
-        logField.addLines(*passport.lines.toTypedArray(), "⛔ [INVALID] - invalid fields ${invalidFields.map { it.field }}", "")
+        logField.addLines(*passport.lines.toTypedArray(),
+            "⛔ [INVALID] - invalid fields ${invalidFields.map { it.field }}",
+            "")
         withInvalid++
         withInvalidField.show(withInvalid.toString())
         delayIfChecked(100)

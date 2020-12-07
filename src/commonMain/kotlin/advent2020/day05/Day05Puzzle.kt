@@ -18,7 +18,7 @@ interface Day05Part2ProgressLogger : ProgressLogger {
 
 suspend fun part2(
     input: String,
-    logger: ProgressLogger = object : Day05Part2ProgressLogger {}
+    logger: ProgressLogger = object : Day05Part2ProgressLogger {},
 ): String {
     logger as Day05Part2ProgressLogger
     val lines = input.trim().lines()
