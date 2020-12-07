@@ -5,7 +5,6 @@ import advent2020.GenericTaskSectionElements
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.ResultField
-import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.fancyShadow
@@ -182,15 +181,15 @@ internal class Day03SectionBuilder : TaskSectionBuilder() {
         resultHeading = "Part 1"
     }
 
-    override fun createTaskSpecificLevelFields(div: TagConsumer<HTMLElement>) {
-        result2Field = div.createResultField("Part 2")
+    override fun createTaskSpecificLevelFields(bodyBuilder: TagConsumer<HTMLElement>) {
+        result2Field = bodyBuilder.createResultField("Part 2")
     }
 
     lateinit var result2Field: ResultField
     lateinit var slopeTiles: Map<Vector, SlopeField>
 
-    override fun createTaskSpecificFields(div: TagConsumer<HTMLElement>) {
-        with(div) {
+    override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) {
+        with(bodyBuilder) {
             style {
                 unsafe { //language=CSS
                     raw(".day03tree { position:absolute; }")
@@ -231,16 +230,6 @@ internal class Day03SectionBuilder : TaskSectionBuilder() {
                         style = "position: absolute;"
                     }
 
-//                    day03myPuzzleInput.trim().lines().forEachIndexed { y, l ->
-//                        l.forEachIndexed { x, c ->
-//                            if (c == '#') {
-//                                div("day03tree") {
-//                                    +if (y * vector.first % l.count() == (x * vector.second)) "\uD83D\uDCA5" else "\uD83C\uDF32" //else "\uD83E\uDDDD"//"\uD83D\uDEF7\u200D\u27A1\uFE0F" //
-//                                    style = "top: ${y}em; left:${x}em;"
-//                                }
-//                            }
-//                        }
-//                    }
                 }
                 div("has-centered-text") {
                     div { collisionsP = p("heading") { +nbsp } }
@@ -250,11 +239,9 @@ internal class Day03SectionBuilder : TaskSectionBuilder() {
         return SlopeTile(box, collisionsP, canvas)
     }
 
-    override fun constructObject(): TaskSection {
-        return Day03Section(
-            genericElements(),
-            result2Field,
-            slopeTiles
-        )
-    }
+    override fun constructObject()   = Day03Section(
+        genericElements(),
+        result2Field,
+        slopeTiles
+    )
 }

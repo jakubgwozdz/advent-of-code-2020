@@ -6,7 +6,6 @@ import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.ReportField
 import advent2020.SuspendingWrapper
-import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.readResourceInCurrentPackage
@@ -29,10 +28,10 @@ fun createUI() {
         task = SuspendingWrapper(::part1)::launchWithoutReceiver
     }.buildInBody(document.body!!)
 
-    Part2SectionBuilder().buildInBody(document.body!!)
+    Day01Part2SectionBuilder().buildInBody(document.body!!)
 }
 
-internal class Part2Section(
+internal class Day01Part2Section(
     genericElements: GenericTaskSectionElements,
     val logField: ReportField,
 ) : GenericTaskSection(genericElements), Day01Part2ProgressLogger {
@@ -53,7 +52,7 @@ internal class Part2Section(
     }
 }
 
-internal class Part2SectionBuilder : TaskSectionBuilder() {
+internal class Day01Part2SectionBuilder : TaskSectionBuilder() {
 
     init {
         title = "Part 2"
@@ -64,14 +63,12 @@ internal class Part2SectionBuilder : TaskSectionBuilder() {
 
     lateinit var log: ReportField
 
-    override fun createTaskSpecificFields(div: TagConsumer<HTMLElement>) {
-        log = div.createLogField()
+    override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) {
+        log = bodyBuilder.createLogField()
     }
 
-    override fun constructObject(): TaskSection {
-        return Part2Section(
-            genericElements(),
-            log,
-        )
-    }
+    override fun constructObject() = Day01Part2Section(
+        genericElements(),
+        log,
+    )
 }

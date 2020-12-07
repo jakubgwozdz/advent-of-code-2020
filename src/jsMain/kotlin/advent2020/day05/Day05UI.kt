@@ -123,8 +123,8 @@ internal class Day05Part2SectionBuilder : TaskSectionBuilder() {
 
     lateinit var canvasElem: HTMLCanvasElement
 
-    override fun createTaskSpecificFields(div: TagConsumer<HTMLElement>) {
-        with(div) {
+    override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) {
+        with(bodyBuilder) {
             div("has-text-centered") {
                 canvasElem = canvas {
                     width = "270"

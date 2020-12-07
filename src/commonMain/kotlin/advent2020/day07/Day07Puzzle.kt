@@ -16,21 +16,26 @@ fun parseRules(input: String) = input.trim().lines()
     }
     .toMap()
 
-interface Part1ProgressLogger : ProgressLogger
+interface Day07ProgressLogger : ProgressLogger {
+    suspend fun foundContaining(outerBag: String, innerBag: String, number: Int? = null, inOne: Int? = null) {}
+}
 
-fun part1(input: String): String {
+val rootBag = "shiny gold"
+
+suspend fun part1(input: String, logger: ProgressLogger = object : Day07ProgressLogger {}): String {
+
     val rules = parseRules(input)
 
     val possibilities = mutableSetOf<String>()
 
-    val toCheck = mutableListOf("shiny gold")
+    val toCheck = mutableListOf(rootBag)
     while (toCheck.isNotEmpty()) {
         val current = toCheck.removeFirst()
         rules
             .filterKeys { it !in possibilities }
             .filterValues { current in it }
             .forEach { (outerBag, _) ->
-//                println("adding $outerBag as it can contain $current")
+                if (logger is Day07ProgressLogger) logger.foundContaining(outerBag, current)
                 possibilities.add(outerBag)
                 toCheck.add(outerBag)
             }
@@ -39,20 +44,25 @@ fun part1(input: String): String {
     return possibilities.size.toString()
 }
 
-fun part2(input: String): String {
+suspend fun part2(input: String, logger: ProgressLogger = object : Day07ProgressLogger {}): String {
     val rules = parseRules(input)
 
-    return bagsInside("shiny gold", rules).toString()
+    return bagsInside(rootBag, rules, logger).toString()
 }
 
-fun bagsInside(
+suspend fun bagsInside(
     outerBag: String,
     rules: Map<String, Map<String, Int>>,
+    logger: ProgressLogger,
     cache: MutableMap<String, Int> = mutableMapOf(), // cache is optional, reduces number of calls from ~90 to ~20
 ): Int {
     return cache[outerBag]
         ?: (rules[outerBag] ?: error("unknown bag $outerBag"))
-            .map { (innerBag, count) -> count * (1 + bagsInside(innerBag, rules, cache)) }
+            .map { (innerBag, count) ->
+                count * (1 + (bagsInside(innerBag, rules, logger, cache).also {
+                    if (logger is Day07ProgressLogger) logger.foundContaining(outerBag, innerBag, count, it)
+                }))
+            }
             .sum()
             .also { cache[outerBag] = it }
 }

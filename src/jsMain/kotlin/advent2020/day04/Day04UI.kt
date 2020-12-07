@@ -6,7 +6,6 @@ import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.ReportField
 import advent2020.ResultField
-import advent2020.TaskSection
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.readResourceInCurrentPackage
@@ -93,26 +92,24 @@ internal class Day04TaskSectionBuilder : TaskSectionBuilder() {
 
     lateinit var log: ReportField
 
-    override fun createTaskSpecificFields(div: TagConsumer<HTMLElement>) {
-        log = div.createLogField()
+    override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) {
+        log = bodyBuilder.createLogField()
     }
 
-    override fun createTaskSpecificLevelFields(div: TagConsumer<HTMLElement>) {
-        withMissingField = div.createResultField("With missing fields")
-        withInvalidField = div.createResultField("With invalid fields")
+    override fun createTaskSpecificLevelFields(bodyBuilder: TagConsumer<HTMLElement>) {
+        withMissingField = bodyBuilder.createResultField("With missing fields")
+        withInvalidField = bodyBuilder.createResultField("With invalid fields")
     }
 
     lateinit var withMissingField: ResultField
     lateinit var withInvalidField: ResultField
 
-    override fun constructObject(): TaskSection {
-        return Day04TaskSection(
-            genericElements(),
-            log,
-            withMissingField,
-            withInvalidField,
-        )
-    }
+    override fun constructObject() = Day04TaskSection(
+        genericElements(),
+        log,
+        withMissingField,
+        withInvalidField,
+    )
 
 }
 

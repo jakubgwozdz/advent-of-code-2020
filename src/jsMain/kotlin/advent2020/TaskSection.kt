@@ -381,11 +381,11 @@ open class TaskSectionBuilder {
         return obj
     }
 
-    protected open fun createTaskSpecificFields(div: TagConsumer<HTMLElement>) {
+    protected open fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) {
 
     }
 
-    protected open fun createTaskSpecificLevelFields(div: TagConsumer<HTMLElement>) {}
+    protected open fun createTaskSpecificLevelFields(bodyBuilder: TagConsumer<HTMLElement>) {}
 
     // helper function for deriving builders
     protected fun genericElements() = GenericTaskSectionElements(
@@ -401,18 +401,7 @@ open class TaskSectionBuilder {
         cancelButton
     )
 
-    protected open fun constructObject(): TaskSection = GenericTaskSection(
-        title,
-        subtitle,
-        puzzleContext,
-        task,
-        resultField,
-        errorField,
-        progressField,
-        launchButton,
-        delayCheckbox,
-        cancelButton
-    )
+    protected open fun constructObject(): TaskSection = GenericTaskSection(genericElements())
 
     protected open fun TagConsumer<HTMLElement>.createResultField(heading: String = "Result"): ResultField {
         lateinit var resultItem: HTMLElement
