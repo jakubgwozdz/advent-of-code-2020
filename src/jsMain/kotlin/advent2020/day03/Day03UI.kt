@@ -188,25 +188,23 @@ internal class Day03SectionBuilder : TaskSectionBuilder() {
     lateinit var result2Field: ResultField
     lateinit var slopeTiles: Map<Vector, SlopeField>
 
-    override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) {
-        with(bodyBuilder) {
-            style {
-                unsafe { //language=CSS
-                    raw(".day03tree { position:absolute; }")
+    override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) = with(bodyBuilder) {
+        style {
+            unsafe { //language=CSS
+                raw(".day03tree { position:absolute; }")
+            }
+        }
+
+        slopeTiles = moves.chunked(3).flatMap { chunk ->
+            val tiles = mutableListOf<Pair<Vector, SlopeField>>()
+            div("tile is-ancestor") {
+                tiles += chunk.map { vector ->
+                    vector to createSlopeTile(vector)
                 }
             }
+            tiles
+        }.toMap()
 
-            slopeTiles = moves.chunked(3).flatMap { chunk ->
-                val tiles = mutableListOf<Pair<Vector, SlopeField>>()
-                div("tile is-ancestor") {
-                    tiles += chunk.map { vector ->
-                        vector to createSlopeTile(vector)
-                    }
-                }
-                tiles
-            }.toMap()
-
-        }
     }
 
     protected fun TagConsumer<HTMLElement>.createSlopeTile(vector: Vector): SlopeField {

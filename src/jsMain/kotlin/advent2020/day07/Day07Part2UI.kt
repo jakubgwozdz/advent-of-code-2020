@@ -5,6 +5,7 @@ import advent2020.GenericTaskSectionElements
 import advent2020.TaskSectionBuilder
 import kotlinx.html.Entities.nbsp
 import kotlinx.html.TagConsumer
+import kotlinx.html.br
 import kotlinx.html.dom.append
 import kotlinx.html.js.div
 import kotlinx.html.js.span
@@ -23,31 +24,13 @@ class Day07Part2Section(genericElements: GenericTaskSectionElements, val divElem
         outerInnerMap.getOrPut(outerBag) { mutableListOf() }.add(Triple(innerBag, number!!, inOne!!))
         val total = outerInnerMap[outerBag]!!.map { it.second * (1 + it.third) }.sum()
 
-        outerDivMap[innerBag]?.let { divElem.removeChild(it); outerDivMap.remove(innerBag) }
+        outerDivMap[outerBag]?.let { divElem.removeChild(it); outerDivMap.remove(outerBag) }
         divElem.append {
 
             outerDivMap[outerBag] = div("level") {
                 div("level-item") {
                     style = """justify-content:flex-start;flex-shrink: inherit;"""
-                    bagPresentation(outerBag, total)
-                    span {
-                        +nbsp
-                        +" = "
-                        +nbsp
-                    }
-                    outerInnerMap[outerBag]!!.forEach {
-                        span() {
-                            +nbsp
-                            +"${it.second}× "
-                            +nbsp
-                        }
-                        bagPresentation(it.first, it.third)
-                        span() {
-                            +nbsp
-                            +" + "
-                            +nbsp
-                        }
-                    }
+                    bagPresentation(outerBag, 1, outerInnerMap)
                 }
             }.also { it.scrollIntoView() }
         }
@@ -56,17 +39,25 @@ class Day07Part2Section(genericElements: GenericTaskSectionElements, val divElem
 
     }
 
-    private fun TagConsumer<HTMLElement>.bagPresentation(bag: String, inside: Int) {
-        span() {
-            style = """
-                padding: 0.5rem; 
-                border: 1px solid white; 
-                background-color: ${bag.split(' ')[1]};
-                text-shadow:1px 1px 2px black;
-                box-shadow: inset 0px 0px 2px 0px black;
-                """.trimIndent()
-            // opacity:50%
-            +"$bag ($inside inside)"
+    private fun TagConsumer<HTMLElement>.bagPresentation(
+        bag: String,
+        number: Int,
+        outerInnerMap: Map<String, List<Triple<String, Int, Int>>>
+    ) {
+        val total = outerInnerMap[bag]?.map { it.second * (1 + it.third) }?.sum()
+        div("bag") {
+            style = """background-color: ${bag.split(' ')[1]};"""
+            div("bag-desc") {
+                if (number != 1) +"$number × "
+                +bag
+                if (total != null) {
+                    br { }
+                    +"($total ${if (number != 1) "inside each" else "inside"})"
+                }
+            }
+            outerInnerMap[bag]?.forEach {
+                bagPresentation(it.first, it.second, outerInnerMap)
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import kotlinx.html.dom.append
 import kotlinx.html.js.div
 import kotlinx.html.js.span
 import kotlinx.html.style
+import kotlinx.html.unsafe
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 
@@ -28,22 +29,11 @@ class Day07Part1Section(genericElements: GenericTaskSectionElements, val divElem
             outerDivMap[outerBag] = div("level") {
                 div("level-item") {
                     style = """justify-content:flex-end;flex-shrink: inherit;"""
-                    var bag = outerBag
                     span {
-                        +nbsp
                         +"${outerInnerMap.size}: "
                         +nbsp
                     }
-                    bagPresentation(bag)
-                    while (bag in outerInnerMap) {
-                        bag = outerInnerMap[bag]!!
-                        span() {
-                            +nbsp
-                            +" ⇨ "
-                            +nbsp
-                        }
-                        bagPresentation(bag)
-                    }
+                    bagPresentation(outerBag, outerInnerMap)
                 }
             }.also { it.scrollIntoView() }
         }
@@ -51,17 +41,13 @@ class Day07Part1Section(genericElements: GenericTaskSectionElements, val divElem
         delayIfChecked(60)
     }
 
-    private fun TagConsumer<HTMLElement>.bagPresentation(bag: String) {
-        span() {
-            style = """
-                padding: 0.5rem; 
-                border: 1px solid white; 
-                background-color: ${bag.split(' ')[1]};
-                text-shadow:1px 1px 2px black;
-                box-shadow: inset 0px 0px 2px 0px black;
-                """.trimIndent()
+    private fun TagConsumer<HTMLElement>.bagPresentation(bag: String, outerInnerMap: MutableMap<String, String>) {
+        div("bag") {
+            style = """background-color: ${bag.split(' ')[1]};"""
             // opacity:50%
             +"$bag"
+            +nbsp
+            outerInnerMap[bag]?.let { bagPresentation(it, outerInnerMap) }
         }
     }
 

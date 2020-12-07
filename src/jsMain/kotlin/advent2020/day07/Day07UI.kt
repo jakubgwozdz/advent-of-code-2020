@@ -5,6 +5,9 @@ import advent2020.PuzzleInfo
 import advent2020.createHeader
 import advent2020.readResourceInCurrentPackage
 import kotlinx.browser.document
+import kotlinx.html.dom.append
+import kotlinx.html.style
+import kotlinx.html.unsafe
 
 val day07puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
 val day07puzzleInfo = PuzzleInfo("day07", "Handy Haversacks (Visual)", 7, 2020)
@@ -13,6 +16,31 @@ val day07puzzleInfo = PuzzleInfo("day07", "Handy Haversacks (Visual)", 7, 2020)
 fun createUI() {
 
     createHeader(day07puzzleInfo, day07puzzleContext, readOnly = true)
+
+    //language=CSS
+    val style = """.bag { 
+    padding: 0.5rem; 
+    border: 1px solid white; 
+    text-shadow:1px 1px 2px black;
+    box-shadow: inset 0 0 2px 0 black; 
+    float: right;
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+
+.bag-desc {
+    float: left;
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+
+
+
+"""
+
+    document.body!!.append {
+        style { unsafe { raw(style) } }
+    }
 
     day07part1Section {
         title = "Part 1"
@@ -31,8 +59,3 @@ fun createUI() {
     }.buildInBody(document.body!!)
 
 }
-
-private val bagIdMap = mutableMapOf(rootBag to 0)
-private var lastId = 0
-
-internal fun bagId(bag: String) = bagIdMap.getOrPut(bag) { ++lastId}
