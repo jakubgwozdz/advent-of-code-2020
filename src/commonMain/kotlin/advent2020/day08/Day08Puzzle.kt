@@ -3,6 +3,7 @@ package advent2020.day08
 import advent2020.day08.OpCode.acc
 import advent2020.day08.OpCode.jmp
 import advent2020.day08.OpCode.nop
+import advent2020.utils.binaryInsert
 
 val regex = """(nop|acc|jmp) ([+\-])(\d+)""".toRegex()
 
@@ -10,8 +11,7 @@ enum class OpCode { nop, acc, jmp, }
 data class Instruction(val opCode: OpCode, val argument: Int)
 
 private fun program(input: String): List<Instruction> = input.trim().lines()
-    .map { regex.matchEntire(it) ?: error("Invalid line $it") }
-    .map { it.destructured }
+    .map { regex.matchEntire(it)?.destructured ?: error("Invalid line $it") }
     .map { (op, sign, number) ->
         Instruction(OpCode.valueOf(op),
             if (sign == "-") -number.toInt() else number.toInt())
@@ -23,17 +23,15 @@ private fun runProgram(lines: List<Instruction>): Int {
     var accumulator = 0
     var ip = 0
 
-    val visited = mutableSetOf<Int>()
-
+    val visited = mutableListOf<Int>()
     while (ip != lines.size) {
-        if (ip in visited) throw InfiniteLoopException(ip, accumulator)
-        visited += ip
+        // if not visited, insert. If already visited - throw exception
+        visited.binaryInsert(ip) { _, _ -> throw InfiniteLoopException(ip, accumulator) }
         when (lines[ip].opCode) {
-            acc -> accumulator += lines[ip].argument
-            jmp -> ip += lines[ip].argument - 1
-            nop -> Unit
+            acc -> accumulator += lines[ip++].argument
+            jmp -> ip += lines[ip].argument
+            nop -> ip++
         }
-        ip++
     }
     return accumulator
 }
@@ -53,24 +51,20 @@ fun part1(input: String): String {
 fun part2(input: String): String {
     val lines = program(input)
 
-    repeat(input.length) { ip ->
-        val line = lines[ip]
-        when (line.opCode) {
-            nop -> try {
-                val result = runProgram(lines.withReplaced(ip, line.copy(opCode = jmp)))
-                return result.toString()
-            } catch (e: Exception) {
-            }
-            jmp -> try {
-                val result = runProgram(lines.withReplaced(ip, line.copy(opCode = nop)))
-                return result.toString()
-            } catch (e: Exception) {
-            }
-            acc -> Unit
+    val result = lines.testWithChange(jmp, nop) ?: lines.testWithChange(nop, jmp) ?: error("no solution found")
+
+    return result.toString()
+}
+
+private fun List<Instruction>.testWithChange(from: OpCode, to: OpCode) = asSequence()
+    .mapIndexedNotNull { index, instruction -> if (instruction.opCode == from) index to instruction else null }
+    .mapNotNull { (index, instruction) ->
+        try {
+            runProgram(withReplaced(index, instruction.copy(opCode = to)))
+        } catch (e: InfiniteLoopException) {
+            null
         }
     }
-
-    error("no solution found")
-}
+    .firstOrNull()
 
 fun <E> List<E>.withReplaced(index: Int, value: E) = subList(0, index) + value + subList(index + 1, size)
