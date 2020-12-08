@@ -27,14 +27,14 @@ class ${className}PuzzleTest {
     @Test
     fun jakubgwozdzPart1() = runTest {
 //    fun jakubgwozdzPart1() = runTestExpect(NotImplementedError::class) {
-        val actual = part1(${pkg}myPuzzleInput)
+        val actual = part1(myPuzzleInput)
         assertEquals("", actual)
     }
 
     @Test
 //    fun jakubgwozdzPart2() = runTest {
     fun jakubgwozdzPart2() = runTestExpect(NotImplementedError::class) {
-        val actual = part2(${pkg}myPuzzleInput)
+        val actual = part2(myPuzzleInput)
         assertEquals("", actual)
     }
 

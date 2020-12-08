@@ -59,7 +59,8 @@ suspend fun bagsInside(
     return cache[outerBag]
         ?: (rules[outerBag] ?: error("unknown bag $outerBag"))
             .map { (innerBag, count) ->
-                count * (1 + (bagsInside(innerBag, rules, logger, cache).also {
+                if (logger is Day07ProgressLogger) logger.foundContaining(outerBag, innerBag, count) // log before counting inside
+                count * (1 + (bagsInside(innerBag, rules, logger, cache).also { // log after counting inside
                     if (logger is Day07ProgressLogger) logger.foundContaining(outerBag, innerBag, count, it)
                 }))
             }

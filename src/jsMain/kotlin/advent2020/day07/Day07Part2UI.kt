@@ -15,7 +15,7 @@ class Day07Part2Section(genericElements: GenericTaskSectionElements, val divElem
     GenericTaskSection(genericElements),
     Day07ProgressLogger {
 
-    private val outerInnerMap = mutableMapOf<String, MutableList<Triple<String, Int, Int>>>()
+    private val outerInnerMap = mutableMapOf<String, MutableList<Triple<String, Int, Int?>>>()
     private val bagDivMap = mutableMapOf<String, HTMLDivElement>()
 
     override suspend fun foundContaining(
@@ -24,9 +24,11 @@ class Day07Part2Section(genericElements: GenericTaskSectionElements, val divElem
         number: Int?,
         inOne: Int?
     ) {
+        console.log("$outerBag contains $number $innerBag, in each: $inOne" )
+        if (inOne == null) return // TODO: I should probably do it better and prepare divs here
         outerInnerMap.getOrPut(outerBag) { mutableListOf() }
-            .add(Triple(innerBag, number!!, inOne!!))
-        val total = outerInnerMap[outerBag]!!.map { it.second * (1 + it.third) }.sum()
+            .add(Triple(innerBag, number!!, inOne))
+        val total = outerInnerMap[outerBag]!!.map { it.second * (1 + (it.third?:0)) }.sum()
 
         bagDivMap[outerBag]?.let { divElem.removeChild(it); bagDivMap.remove(outerBag) }
         outerInnerMap[outerBag]?.forEach { (innerBag, _, _) ->
@@ -50,9 +52,9 @@ class Day07Part2Section(genericElements: GenericTaskSectionElements, val divElem
     private fun TagConsumer<HTMLElement>.bagPresentation(
         bag: String,
         number: Int,
-        outerInnerMap: Map<String, List<Triple<String, Int, Int>>>
+        outerInnerMap: Map<String, List<Triple<String, Int, Int?>>>
     ) {
-        val total = outerInnerMap[bag]?.map { it.second * (1 + it.third) }?.sum()
+        val total = outerInnerMap[bag]?.map { it.second * (1 + (it.third?:0)) }?.sum()
         div("bag") {
             style = """background-color: ${bag.split(' ')[1]};"""
             div("bag-desc") {

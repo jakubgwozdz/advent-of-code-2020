@@ -9,9 +9,9 @@ import java.nio.file.Paths
 
 // PARAMS
 
-val day = 7
+val day = 8
 val year = 2020
-val pkg = "day07"
+val pkg = "day08"
 
 
 // INIT
@@ -35,7 +35,7 @@ val context = mapOf(
 
 // input data in file
 fileFromString(
-    root.resolve(Paths.get("src", "commonMain", "resources", "advent2020", pkg, "jakubgwozdz.txt")),
+    root.resolve(Paths.get("src", "commonMain", "resources", pkg, "jakubgwozdz.txt")),
     input
 )
 
