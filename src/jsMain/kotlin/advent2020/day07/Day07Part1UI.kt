@@ -20,7 +20,7 @@ class Day07Part1Section(genericElements: GenericTaskSectionElements, val divElem
     private val outerInnerMap = mutableMapOf<String, String>()
     private val outerDivMap = mutableMapOf<String, HTMLDivElement>()
 
-    override suspend fun foundContaining(outerBag: String, innerBag: String, number: Int?, inOne: Int?) {
+    override suspend fun foundContaining(outerBag: String, innerBag: String) {
 
         outerInnerMap[outerBag] = innerBag
 //        outerDivMap[innerBag]?.let { divElem.removeChild(it); outerDivMap.remove(innerBag) }

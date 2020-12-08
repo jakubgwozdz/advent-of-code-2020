@@ -17,7 +17,10 @@ fun parseRules(input: String) = input.trim().lines()
     .toMap()
 
 interface Day07ProgressLogger : ProgressLogger {
-    suspend fun foundContaining(outerBag: String, innerBag: String, number: Int? = null, inOne: Int? = null) {}
+    suspend fun foundContaining(outerBag: String, innerBag: String) {}
+    suspend fun entering(outerBag: String?, innerBag: String, number: Int) {}
+    suspend fun alreadyKnown(outerBag: String) {}
+    suspend fun exiting(outerBag: String?, innerBag: String, number: Int, insideEach: Int) {}
 }
 
 val rootBag = "shiny gold"
@@ -46,8 +49,10 @@ suspend fun part1(input: String, logger: ProgressLogger = object : Day07Progress
 
 suspend fun part2(input: String, logger: ProgressLogger = object : Day07ProgressLogger {}): String {
     val rules = parseRules(input)
-
-    return bagsInside(rootBag, rules, logger).toString()
+    if (logger is Day07ProgressLogger) logger.entering(null, rootBag, 1) // log before counting inside
+    return bagsInside(rootBag, rules, logger).also { // log after counting inside
+        if (logger is Day07ProgressLogger) logger.exiting(null, rootBag, 1, it)
+    }.toString()
 }
 
 suspend fun bagsInside(
@@ -56,12 +61,12 @@ suspend fun bagsInside(
     logger: ProgressLogger,
     cache: MutableMap<String, Int> = mutableMapOf(), // cache is optional, reduces number of calls from ~90 to ~20
 ): Int {
-    return cache[outerBag]
+    return cache[outerBag]?.also {if (logger is Day07ProgressLogger) logger.alreadyKnown(outerBag) }
         ?: (rules[outerBag] ?: error("unknown bag $outerBag"))
             .map { (innerBag, count) ->
-                if (logger is Day07ProgressLogger) logger.foundContaining(outerBag, innerBag, count) // log before counting inside
+                if (logger is Day07ProgressLogger) logger.entering(outerBag, innerBag, count) // log before counting inside
                 count * (1 + (bagsInside(innerBag, rules, logger, cache).also { // log after counting inside
-                    if (logger is Day07ProgressLogger) logger.foundContaining(outerBag, innerBag, count, it)
+                    if (logger is Day07ProgressLogger) logger.exiting(outerBag, innerBag, count, it)
                 }))
             }
             .sum()
