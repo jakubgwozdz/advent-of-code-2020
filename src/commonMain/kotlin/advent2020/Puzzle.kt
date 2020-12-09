@@ -43,8 +43,8 @@ class WrapperNoReceiver(val task: suspend (String) -> String) {
 fun suspending(task: (String) -> String) = SuspendingWrapperNoReceiver(task)::launch
 fun suspending(task: (String, ProgressLogger) -> String) = SuspendingWrapper(task)::launch
 
-fun suspending(task: suspend (String) -> String) = WrapperNoReceiver(task)::launch
-fun suspending(task: suspend (String, ProgressLogger) -> String) = task
+fun withReceiver(task: suspend (String) -> String) = WrapperNoReceiver(task)::launch
+fun simply(task: suspend (String, ProgressLogger) -> String) = task
 
 interface TaskLauncher {
     fun start(logger: ProgressLogger, puzzleContext: PuzzleContext, task: PuzzleTask)

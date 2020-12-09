@@ -3,7 +3,6 @@ package advent2020.day08
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.createHeader
-import advent2020.readResource
 import advent2020.readResourceInCurrentPackage
 import advent2020.suspending
 import advent2020.taskSection

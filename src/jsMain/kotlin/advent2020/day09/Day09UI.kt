@@ -9,6 +9,7 @@ import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.readResourceInCurrentPackage
 import advent2020.suspending
+import advent2020.simply
 import advent2020.taskSection
 import kotlinx.browser.document
 import kotlinx.dom.addClass
@@ -68,7 +69,7 @@ fun createUI() {
     day09part2Section {
         title = "Part 2"
         puzzleContext = day09puzzleContext
-        task = suspending(::part2)
+        task = simply(::part2)
         delay = true
     }.buildInBody(document.body!!)
 
