@@ -91,9 +91,9 @@ class Day09Part2Section(
 
     suspend fun setStatus(start: Int, end: Int, sum: Long) {
         cssStyleRule.style.backgroundColor = when {
-            sum > expectedSum -> "#3b150f"
+            sum > expectedSum -> "#583867"
             sum < expectedSum -> "#385367"
-            else -> "#13672B"
+            else -> "#386763"
         }
 
         currentSumField.show("$sum")
