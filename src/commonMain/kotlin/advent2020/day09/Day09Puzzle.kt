@@ -1,8 +1,5 @@
 package advent2020.day09
 
-import kotlin.math.max
-import kotlin.math.min
-
 internal fun String.parsedData() = trim().lines().map(String::toLong)
 
 fun valid(preamble: List<Long>, expectedSum: Long): Boolean {
@@ -34,25 +31,36 @@ fun firstInvalid(data: List<Long>, preambleLength: Int): Long {
     error("invalid entry not found")
 }
 
-fun contiguous(data: List<Long>, expectedSum: Long): Long {
-    (0..data.size - 2).forEach { start ->
-        var minimum = data[start]
-        var maximum = data[start]
-        var sum = data[start]
-        var end = start + 1
-
-        while (sum < expectedSum || end < start + 2) {
-            sum += data[end]
-            minimum = min(minimum, data[end])
-            maximum = max(maximum, data[end])
-            end++
-        }
-
-        if (sum == expectedSum) return minimum + maximum
+fun List<Long>.minPlusMax(): Long {
+    var minimum = this[0]
+    var maximum = this[0]
+    forEach {
+        if (it < minimum) minimum = it
+        if (it > maximum) maximum = it
     }
+    return minimum + maximum
+}
+
+fun contiguousMaxMin(data: List<Long>, expectedSum: Long) = contiguous(data, expectedSum)
+    .let { (start, end) -> data.subList(start, end) }
+    .minPlusMax()
+
+fun contiguous(data: List<Long>, expectedSum: Long, minSize: Int = 2): Pair<Int, Int> {
+
+    var start = 0
+    var end = start + minSize
+    var sum = data.subList(start, end).sum()
+
+    while (start < data.size - minSize) when {
+        sum < expectedSum -> sum += data[end++]
+        sum > expectedSum -> sum = sum - data[start++] - data[--end]
+        end - start < minSize -> sum = sum - data[start++] + data[end++]
+        else -> return start to end
+    }
+
     error("answer not found")
 }
 
 fun part1(input: String) = firstInvalid(input.parsedData(), 25).toString()
-fun part2(input: String) = contiguous(input.parsedData(), firstInvalid(input.parsedData(), 25)).toString()
+fun part2(input: String) = contiguousMaxMin(input.parsedData(), firstInvalid(input.parsedData(), 25)).toString()
 
