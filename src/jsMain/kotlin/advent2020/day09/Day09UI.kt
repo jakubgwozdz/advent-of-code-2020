@@ -98,7 +98,7 @@ class Day09Part2Section(
         cssStyleRule.style.backgroundColor = when {
             sum > expectedSum -> "#3b150f"
             sum < expectedSum -> "#385367"
-            else -> "#0c351e"
+            else -> "#13672B"
         }
 
         currentSumField.show("$sum")
