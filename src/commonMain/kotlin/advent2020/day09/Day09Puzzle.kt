@@ -41,7 +41,7 @@ fun List<Long>.minPlusMax(): Long {
     return minimum + maximum
 }
 
-fun contiguousMaxMin(data: List<Long>, expectedSum: Long) = contiguous(data, expectedSum)
+fun contiguousMinPlusMax(data: List<Long>, expectedSum: Long) = contiguous(data, expectedSum)
     .let { (start, end) -> data.subList(start, end) }
     .minPlusMax()
 
@@ -49,7 +49,7 @@ fun contiguous(data: List<Long>, expectedSum: Long, minSize: Int = 2): Pair<Int,
 
     var start = 0
     var end = start + minSize
-    var sum = data.subList(start, end).sum()
+    var sum = data.subList(start, end).sumOf { it }
 
     while (start < data.size - minSize) when {
         sum < expectedSum -> sum += data[end++]
@@ -62,5 +62,5 @@ fun contiguous(data: List<Long>, expectedSum: Long, minSize: Int = 2): Pair<Int,
 }
 
 fun part1(input: String) = firstInvalid(input.parsedData(), 25).toString()
-fun part2(input: String) = contiguousMaxMin(input.parsedData(), firstInvalid(input.parsedData(), 25)).toString()
+fun part2(input: String) = contiguousMinPlusMax(input.parsedData(), firstInvalid(input.parsedData(), 25)).toString()
 
