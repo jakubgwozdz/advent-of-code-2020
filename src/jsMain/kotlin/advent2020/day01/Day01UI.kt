@@ -5,10 +5,10 @@ import advent2020.GenericTaskSectionElements
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.ReportField
-import advent2020.SuspendingWrapper
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.readResourceInCurrentPackage
+import advent2020.suspending
 import advent2020.taskSection
 import kotlinx.browser.document
 import kotlinx.html.TagConsumer
@@ -25,7 +25,7 @@ fun createUI() {
     taskSection {
         title = "Part 1"
         puzzleContext = day01puzzleContext
-        task = SuspendingWrapper(::part1)::launchWithoutReceiver
+        task = suspending(::part1)
     }.buildInBody(document.body!!)
 
     Day01Part2SectionBuilder().buildInBody(document.body!!)

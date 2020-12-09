@@ -2,9 +2,9 @@ package advent2020.day02
 
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
-import advent2020.SuspendingWrapper
 import advent2020.createHeader
 import advent2020.readResourceInCurrentPackage
+import advent2020.suspending
 import advent2020.taskSection
 import kotlinx.browser.document
 
@@ -19,13 +19,13 @@ fun createUI() {
     taskSection {
         title = "Part 1"
         puzzleContext = day02puzzleContext
-        task = SuspendingWrapper(::part1)::launchWithoutReceiver
+        task = suspending(::part1)
     }.buildInBody(document.body!!)
 
     taskSection {
         title = "Part 2"
         puzzleContext = day02puzzleContext
-        task = SuspendingWrapper(::part2)::launchWithoutReceiver
+        task = suspending(::part2)
     }.buildInBody(document.body!!)
 
 }

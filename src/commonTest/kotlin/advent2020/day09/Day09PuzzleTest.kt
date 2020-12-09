@@ -62,7 +62,7 @@ class Day09PuzzleTest {
             309
             576
             """.trimIndent()
-        val actual = contiguousMinPlusMax(sampleInput.parsedData(),127)
+        val actual = contiguousMinPlusMax(sampleInput.parsedData(), 127)
         assertEquals(62, actual)
     }
 

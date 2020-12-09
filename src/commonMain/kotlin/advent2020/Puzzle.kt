@@ -28,11 +28,23 @@ val emptyReceiver = object : ProgressLogger {
 }
 
 
-class SuspendingWrapper(val task: (String) -> String) {
-    suspend fun launchWithoutReceiver(input: String, logger: ProgressLogger) = task(input)
+class SuspendingWrapper(val task: (String, ProgressLogger) -> String) {
+    suspend fun launch(input: String, logger: ProgressLogger) = task(input, logger)
 }
 
-fun suspending(task: (String) -> String) = SuspendingWrapper(task)::launchWithoutReceiver
+class SuspendingWrapperNoReceiver(val task: (String) -> String) {
+    suspend fun launch(input: String, logger: ProgressLogger) = task(input)
+}
+
+class WrapperNoReceiver(val task: suspend (String) -> String) {
+    suspend fun launch(input: String, logger: ProgressLogger) = task(input)
+}
+
+fun suspending(task: (String) -> String) = SuspendingWrapperNoReceiver(task)::launch
+fun suspending(task: (String, ProgressLogger) -> String) = SuspendingWrapper(task)::launch
+
+fun suspending(task: suspend (String) -> String) = WrapperNoReceiver(task)::launch
+fun suspending(task: suspend (String, ProgressLogger) -> String) = task
 
 interface TaskLauncher {
     fun start(logger: ProgressLogger, puzzleContext: PuzzleContext, task: PuzzleTask)
