@@ -9,8 +9,8 @@ import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.myScrollIntoView
 import advent2020.readResourceInCurrentPackage
-import advent2020.suspending
 import advent2020.simply
+import advent2020.suspending
 import advent2020.taskSection
 import kotlinx.browser.document
 import kotlinx.dom.addClass
@@ -24,11 +24,6 @@ import kotlinx.html.js.style
 import kotlinx.html.unsafe
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.NEAREST
-import org.w3c.dom.SMOOTH
-import org.w3c.dom.ScrollBehavior
-import org.w3c.dom.ScrollIntoViewOptions
-import org.w3c.dom.ScrollLogicalPosition
 import org.w3c.dom.asList
 import org.w3c.dom.css.CSSStyleRule
 import org.w3c.dom.css.CSSStyleSheet
@@ -81,7 +76,7 @@ class Day09Part2Section(
     val divElem: HTMLDivElement,
     val currentRangeField: ResultField,
     val currentSumField: ResultField,
-    val expectedSumField: ResultField
+    val expectedSumField: ResultField,
 ) :
     GenericTaskSection(genericElements), Day09ProgressLogger {
 
@@ -102,7 +97,12 @@ class Day09Part2Section(
         }
 
         currentSumField.show("$sum")
-        currentRangeField.show("$start .. ${end-1}")
+        currentRangeField.show("$start .. ${end - 1}")
+        if (expectedSum > sum)
+            progressField.value(sum, expectedSum)
+        else
+            progressField.value(expectedSum, sum)
+//        progressField.value(1.0 - (1.0 - sum.toDouble()/expectedSum).absoluteValue.pow(0.5), 1.0)
         delayIfChecked(25)
 
     }
@@ -131,14 +131,14 @@ class Day09Part2Section(
     }
 
     override suspend fun expanding(start: Int, end: Int, sum: Long) {
-        console.log("expanding to $start-${end-1}")
+        console.log("expanding to $start-${end - 1}")
         spans[end - 1].addClass("inside-range")
         spans[end - 1].myScrollIntoView()
         setStatus(start, end, sum)
     }
 
     override suspend fun narrowing(start: Int, end: Int, sum: Long) {
-        console.log("narrowing to $start-${end-1}")
+        console.log("narrowing to $start-${end - 1}")
         spans[start - 1].removeClass("inside-range")
         spans[end - 1].myScrollIntoView()
         spans[start].myScrollIntoView()
@@ -146,7 +146,7 @@ class Day09Part2Section(
     }
 
     override suspend fun shifting(start: Int, end: Int, sum: Long) {
-        console.log("shifting to $start-${end-1}")
+        console.log("shifting to $start-${end - 1}")
         spans[start - 1].removeClass("inside-range")
         spans[end - 1].addClass("inside-range")
         spans[end - 1].myScrollIntoView()
@@ -181,12 +181,13 @@ class Day09Part2SectionBuilder : TaskSectionBuilder() {
         expectedSumField = bodyBuilder.createResultField("Expected Sum")
     }
 
-    lateinit var currentRangeField : ResultField
-    lateinit var currentSumField : ResultField
-    lateinit var expectedSumField : ResultField
+    lateinit var currentRangeField: ResultField
+    lateinit var currentSumField: ResultField
+    lateinit var expectedSumField: ResultField
 
 
-    override fun constructObject() = Day09Part2Section(genericElements(), divElem, currentRangeField, currentSumField, expectedSumField)
+    override fun constructObject() =
+        Day09Part2Section(genericElements(), divElem, currentRangeField, currentSumField, expectedSumField)
 }
 
 fun day09part2Section(op: Day09Part2SectionBuilder.() -> Unit) = Day09Part2SectionBuilder().apply(op)

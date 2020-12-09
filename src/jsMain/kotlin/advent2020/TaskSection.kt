@@ -229,6 +229,7 @@ interface ProgressField {
     fun ongoing()
     fun value(value: Double, max: Double)
     fun value(value: Int, max: Int) = value(value.toDouble(), max.toDouble())
+    fun value(value: Long, max: Long) = value(value.toDouble(), max.toDouble())
     fun success()
     fun error()
 }
