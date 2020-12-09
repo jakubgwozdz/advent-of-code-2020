@@ -15,13 +15,22 @@ import kotlinx.html.js.nav
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.p
 import kotlinx.html.js.title
+import org.w3c.dom.AUTO
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.NEAREST
+import org.w3c.dom.ScrollBehavior
+import org.w3c.dom.ScrollIntoViewOptions
+import org.w3c.dom.ScrollLogicalPosition
 
 
 fun createHeader(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext, readOnly: Boolean = false) {
     document.head!!.append { title { +"${puzzleInfo.day}: ${puzzleInfo.title}" } }
     document.body!!.append { createHeader(puzzleInfo, puzzleContext, readOnly) }
 }
+
+internal fun Element.myScrollIntoView(behavior: ScrollBehavior = ScrollBehavior.AUTO) =
+    this.scrollIntoView(ScrollIntoViewOptions(ScrollLogicalPosition.NEAREST, ScrollLogicalPosition.NEAREST, behavior))
 
 private fun TagConsumer<HTMLElement>.createHeader(
     puzzleInfo: PuzzleInfo,

@@ -7,6 +7,7 @@ import advent2020.PuzzleInfo
 import advent2020.ResultField
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
+import advent2020.myScrollIntoView
 import advent2020.readResourceInCurrentPackage
 import advent2020.suspending
 import advent2020.simply
@@ -96,7 +97,7 @@ class Day09Part2Section(
     suspend fun setStatus(start: Int, end: Int, sum: Long) {
         cssStyleRule.style.backgroundColor = when {
             sum > expectedSum -> "#3b150f"
-            sum < expectedSum -> "#263d51"
+            sum < expectedSum -> "#385367"
             else -> "#0c351e"
         }
 
@@ -130,22 +131,25 @@ class Day09Part2Section(
     }
 
     override suspend fun expanding(start: Int, end: Int, sum: Long) {
+        console.log("expanding to $start-${end-1}")
         spans[end - 1].addClass("inside-range")
-        spans[end - 1].scrollIntoView(ScrollIntoViewOptions(ScrollLogicalPosition.NEAREST))
+        spans[end - 1].myScrollIntoView()
         setStatus(start, end, sum)
     }
 
     override suspend fun narrowing(start: Int, end: Int, sum: Long) {
+        console.log("narrowing to $start-${end-1}")
         spans[start - 1].removeClass("inside-range")
-        spans[end - 1].scrollIntoView(ScrollIntoViewOptions(ScrollLogicalPosition.NEAREST))
-        spans[start - 1].scrollIntoView(ScrollIntoViewOptions(ScrollLogicalPosition.NEAREST))
+        spans[end - 1].myScrollIntoView()
+        spans[start].myScrollIntoView()
         setStatus(start, end, sum)
     }
 
     override suspend fun shifting(start: Int, end: Int, sum: Long) {
+        console.log("shifting to $start-${end-1}")
         spans[start - 1].removeClass("inside-range")
         spans[end - 1].addClass("inside-range")
-        spans[end - 1].scrollIntoView(ScrollIntoViewOptions(ScrollLogicalPosition.NEAREST))
+        spans[end - 1].myScrollIntoView()
         setStatus(start, end, sum)
     }
 
@@ -156,7 +160,7 @@ class Day09Part2Section(
             .parentElement!!
             .parentElement!!
             .parentElement!! // lol oh c'mon
-            .scrollIntoView(ScrollIntoViewOptions(ScrollLogicalPosition.NEAREST, behavior = ScrollBehavior.SMOOTH))
+            .myScrollIntoView()
     }
 
 }
