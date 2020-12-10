@@ -36,9 +36,13 @@ fun part2(input: String): String {
     return count.toString()
 }
 
-fun List<Int>.ways(s: Int = 0): Int = when {
-    s >= size - 1 -> 1
-    this[s] == 2 && this[s + 1] == 2 -> this.ways(s + 1)
-    s < size - 2 && (0..2).all { this[s + it] == 1 } -> (1..3).map { this.ways(s + it) }.sum()
-    else /* any other more than two-elem */ -> (1..2).map { this.ways(s + it) }.sum()
+val cache = mutableMapOf<Pair<List<Int>, Int>, Int>()
+
+fun List<Int>.ways(s: Int = 0): Int = cache.getOrPut(this to s) {
+    when {
+        s >= size - 1 -> 1
+        this[s] == 2 && this[s + 1] == 2 -> this.ways(s + 1)
+        s < size - 2 && (0..2).all { this[s + it] == 1 } -> (1..3).map { this.ways(s + it) }.sum()
+        else /* any other more than two-elem */ -> (1..2).map { this.ways(s + it) }.sum()
+    }
 }
