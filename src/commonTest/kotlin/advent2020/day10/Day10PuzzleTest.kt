@@ -68,23 +68,23 @@ class Day10PuzzleTest {
     }
 
     @Test
-    fun vatiations1() = runTest {
-        assertEquals(1, listOf(1).ways())
+    fun vatiations1a() = runTest {
+        assertEquals("1", part2("1"))
     }
 
     @Test
-    fun vatiations2() = runTest {
-        assertEquals(2, listOf(1, 1).ways())
+    fun vatiations2a() = runTest {
+        assertEquals("2", part2("1\n1"))
     }
 
     @Test
-    fun vatiations3() = runTest {
-        assertEquals(4, listOf(1, 1, 1).ways())
+    fun vatiations3a() = runTest {
+        assertEquals("3", part2("1\n1\n"))
     }
 
     @Test
-    fun vatiations4() = runTest {
-        assertEquals(7, listOf(1, 1, 1, 1).ways())
+    fun vatiations4a() = runTest {
+        assertEquals("7", part2("1\n1\n1\n1"))
     }
 
 }
