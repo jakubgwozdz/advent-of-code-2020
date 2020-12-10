@@ -74,17 +74,17 @@ class Day10PuzzleTest {
 
     @Test
     fun vatiations2a() = runTest {
-        assertEquals("2", part2("1\n1"))
+        assertEquals("2", part2("1\n2"))
     }
 
     @Test
     fun vatiations3a() = runTest {
-        assertEquals("3", part2("1\n1\n"))
+        assertEquals("4", part2("1\n2\n3"))
     }
 
     @Test
     fun vatiations4a() = runTest {
-        assertEquals("7", part2("1\n1\n1\n1"))
+        assertEquals("7", part2("1\n2\n3\n4"))
     }
 
 }
