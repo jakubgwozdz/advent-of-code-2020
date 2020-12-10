@@ -34,7 +34,7 @@ val day09puzzleInfo = PuzzleInfo("day09", "Encoding Error (VISUAL)", 9, 2020)
 @JsExport
 fun createUI() {
 
-    createHeader(day09puzzleInfo, day09puzzleContext, readOnly = true)
+    createHeader(day09puzzleInfo, day09puzzleContext)
 
     //language=CSS
     val style = """

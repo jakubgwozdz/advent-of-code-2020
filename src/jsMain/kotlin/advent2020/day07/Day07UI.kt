@@ -15,7 +15,7 @@ val day07puzzleInfo = PuzzleInfo("day07", "Handy Haversacks (Visual)", 7, 2020)
 @JsExport
 fun createUI() {
 
-    createHeader(day07puzzleInfo, day07puzzleContext, readOnly = true)
+    createHeader(day07puzzleInfo, day07puzzleContext)
 
     //language=CSS
     val style = """.bag { 
