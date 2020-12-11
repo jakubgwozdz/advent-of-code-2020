@@ -27,3 +27,6 @@ function ResourceLoaderMiddleware() {
 config.plugins.push({
   'middleware:resource-loader': ['factory', ResourceLoaderMiddleware]
 });
+
+
+config.browserDisconnectTimeout = 99
