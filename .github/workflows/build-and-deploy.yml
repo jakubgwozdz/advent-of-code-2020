@@ -50,7 +50,7 @@ jobs:
             ${{ runner.os }}-js-
 
       - name: Build
-        run: ./gradlew build jsBrowserProductionWebpack
+        run: ./gradlew build jsBrowserProductionWebpack --info
 
       - name: Deploy
         if: success()
