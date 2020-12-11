@@ -28,6 +28,7 @@ fun <E : Comparable<E>> MutableList<E>.binaryInsert(e: E, onExisting: (Int, E) -
 }
 
 
+//inline fun <T> Iterable<T>.atLeast(count: Int, predicate: (T) -> Boolean) = count(predicate) >= count
 inline fun <T> Iterable<T>.atLeast(count: Int, predicate: (T) -> Boolean): Boolean {
     if (count <= 0) return true
     if (this is Collection && isEmpty()) return false
