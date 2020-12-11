@@ -28,5 +28,10 @@ config.plugins.push({
   'middleware:resource-loader': ['factory', ResourceLoaderMiddleware]
 });
 
-
-config.browserDisconnectTimeout = 99
+config.set({
+  client: {
+    mocha: {
+      timeout: 5000
+    }
+  }
+})
