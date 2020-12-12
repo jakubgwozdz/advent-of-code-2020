@@ -1,77 +1,83 @@
 package advent2020.day12
 
-import advent2020.day12.Actions.E
-import advent2020.day12.Actions.F
-import advent2020.day12.Actions.L
-import advent2020.day12.Actions.N
-import advent2020.day12.Actions.R
-import advent2020.day12.Actions.S
-import advent2020.day12.Actions.W
+import advent2020.day12.Action.*
 import kotlin.math.absoluteValue
 
-enum class Actions { N, S, E, W, L, R, F }
+enum class Action { N, S, E, W, L, R, F }
 
-internal operator fun Pair<Int,Int>.times(count:Int) = first * count to second * count
-internal operator fun Pair<Int,Int>.plus(vector: Pair<Int, Int>) = first + vector.first to second + vector.second
-internal operator fun Pair<Int,Int>.unaryMinus() = -first to -second
-
-internal fun Pair<Int, Int>.rotateLeft(count: Int) = when (count % 360) {
-    0 -> this
-    90 -> -second to first
-    180 -> -this
-    270 -> second to -first
-    else -> error("can't rotate $count")
-}
-
-internal fun Pair<Int, Int>.rotateRight(count: Int) = when (count % 360) {
-    0 -> this
-    90 -> second to -first
-    180 -> -this
-    270 -> -second to first
-    else -> error("can't rotate $count")
+data class Command(val action: Action, val count: Int) {
+    constructor(s: String) : this(Action.valueOf(s.take(1)), s.drop(1).toInt())
 }
 
 internal fun parseAsSequence(input: String) =
-    input.trim().lineSequence().map { Actions.valueOf(it.take(1)) to it.drop(1).toInt() }
+    input.trim().lineSequence().map(::Command)
 
+data class Vector(val dx: Int, val dy: Int) {
+    operator fun plus(that: Vector) = Vector(dx + that.dx, dy + that.dy)
+    operator fun times(count: Int) = Vector(dx * count, dy * count)
+    operator fun unaryMinus() = Vector(-dx, -dy)
+    fun rotateLeft(count: Int) = when (count % 360) {
+        0 -> this
+        90 -> Vector(-dy, dx)
+        180 -> -this
+        270 -> Vector(dy, -dx)
+        else -> error("can't rotate $count")
+    }
+    fun rotateRight(count: Int) = when (count % 360) {
+        0 -> this
+        90 -> Vector(dy, -dx)
+        180 -> -this
+        270 -> Vector(-dy, dx)
+        else -> error("can't rotate $count")
+    }
+}
 
-val directions = mapOf(N to (0 to 1), S to (0 to -1), E to (1 to 0), W to (-1 to 0))
+data class Position(val x: Int, val y: Int) {
+    operator fun plus(v: Vector) = Position(x + v.dx, y + v.dy)
+    val manhattan get() = x.absoluteValue + y.absoluteValue
+}
+
+fun direction(action: Action) = when (action) {
+    N -> Vector(0, 1)
+    S -> Vector(0, -1)
+    E -> Vector(1, 0)
+    W -> Vector(-1, 0)
+    else -> error("`$action` is not a direction")
+}
+
+data class State(val position: Position, val waypoint: Vector)
+
+fun State.part1Command(command: Command) = when (command.action) {
+    N, S, E, W -> copy(position = position + direction(command.action) * command.count)
+    L -> copy(waypoint = waypoint.rotateLeft(command.count))
+    R -> copy(waypoint = waypoint.rotateRight(command.count))
+    F -> copy(position = position + waypoint * command.count)
+}
 
 fun part1(input: String): String {
+    val commands = parseAsSequence(input)
 
-    var pos = 0 to 0
-    var vector = 1 to 0
+    val start = State(Position(0, 0), Vector(1, 0))
+    val end = commands.fold(start, State::part1Command)
+    val manhattan = end.position.manhattan
 
-    parseAsSequence(input).forEach { (action, count) ->
-        when (action) {
-            N, S, E, W -> pos += directions[action]!! * count
-            L -> vector = vector.rotateLeft(count)
-            R -> vector = vector.rotateRight(count)
-            F -> pos += vector * count
-        }
-//        println("$l: ship at $pos ; v = $vector")
+    return manhattan.toString()
+}
 
-    }
-    return (pos.first.absoluteValue + pos.second.absoluteValue).toString()
+fun State.part2Command(command: Command) = when (command.action) {
+    N, S, E, W -> copy(waypoint = waypoint + direction(command.action) * command.count)
+    L -> copy(waypoint = waypoint.rotateLeft(command.count))
+    R -> copy(waypoint = waypoint.rotateRight(command.count))
+    F -> copy(position = position + waypoint * command.count)
 }
 
 fun part2(input: String): String {
+    val commands = parseAsSequence(input)
 
-    var pos = 0 to 0
-    var vector = 10 to 1
-
-    parseAsSequence(input).forEach { (action, count) ->
-
-        when (action) {
-            N, S, E, W -> vector += directions[action]!! * count
-            L -> vector = vector.rotateLeft(count)
-            R -> vector = vector.rotateRight(count)
-            F -> pos += vector * count
-        }
-//        println("$l: ship at $pos ; v = $vector")
-
-    }
-    return (pos.first.absoluteValue + pos.second.absoluteValue).toString()
+    val start = State(Position(0, 0), Vector(10, 1))
+    val end = commands.fold(start, State::part2Command)
+    val manhattan = end.position.manhattan
+    return manhattan.toString()
 }
 
 
