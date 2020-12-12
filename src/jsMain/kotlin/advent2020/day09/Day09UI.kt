@@ -85,7 +85,8 @@ class Day09Part2Section(
     val cssStyleRule = document.styleSheets
         .asList()
         .filterIsInstance<CSSStyleSheet>()
-        .flatMap { it.cssRules.asList() }
+        .last()
+        .let { it.cssRules.asList() }
         .filterIsInstance<CSSStyleRule>()
         .single { it.selectorText == ".inside-range" }
 
