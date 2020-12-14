@@ -29,10 +29,24 @@ fun part2(input: String): String {
     val memory = mutableMapOf<Long, Long>()
     var masks = emptyList<Pair<Long, Long>>()
 
-    lines.forEachIndexed { i, line ->
+    lines.forEach { line ->
         val newMask = mask(line)
         if (newMask != null) {
-            masks = sequence { floats(newMask) }.toList()
+            masks = sequence {
+                val queue = mutableListOf(newMask)
+                while (queue.isNotEmpty()) {
+                    val mask = queue.removeFirst()
+                    val index = mask.indexOf('X')
+                    if (index >= 0) {
+                        queue.add(mask.replaceRange(index, index + 1, "_"))
+                        queue.add(mask.replaceRange(index, index + 1, "1"))
+                    } else {
+                        val andMask = mask.replace('0', '1').replace('_', '0').toLong(2)
+                        val orMask = mask.replace('0', '0').replace('_', '0').toLong(2)
+                        yield(andMask to orMask)
+                    }
+                }
+            }.toList()
         } else {
             val (addr, value) = memOp(line) ?: error("Invalid line $line")
             masks.map { (andMask, orMask) -> (addr and andMask) or orMask }
@@ -55,15 +69,3 @@ private fun memOp(line: String) = memOpRegex.matchEntire(line)
     ?.let { (a, v) -> a.toLong() to v.toLong() }
 
 
-private suspend fun SequenceScope<Pair<Long, Long>>.floats(mask: String) {
-    val index = mask.indexOf('X')
-    if (index < 0) {
-        val andMask = mask.replace('0', '1').replace('_', '0').toLong(2)
-        val orMask = mask.replace('0', '0').replace('_', '0').toLong(2)
-
-        yield(andMask to orMask)
-    } else {
-        floats(mask.replaceRange(index, index + 1, "_"))
-        floats(mask.replaceRange(index, index + 1, "1"))
-    }
-}
