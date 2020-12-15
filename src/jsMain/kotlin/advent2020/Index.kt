@@ -33,6 +33,7 @@ val knownTasks by lazy {
         advent2020.day12.day12puzzleInfo,
         advent2020.day13.day13puzzleInfo,
         advent2020.day14.day14puzzleInfo,
+        advent2020.day15.day15puzzleInfo,
     )
 }
 
