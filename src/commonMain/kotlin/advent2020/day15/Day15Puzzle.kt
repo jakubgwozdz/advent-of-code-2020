@@ -16,7 +16,7 @@ fun part2(input: String): String {
 fun solve(starting: List<Int>, turns: Int): Int {
     var turn = 0
     var prevNumber = 0
-    val map = hashMapOf<Int, Int>()
+    val map = IntArray(turns + 1)
     starting.forEach { number ->
         turn++
         map[number] = turn
@@ -24,7 +24,7 @@ fun solve(starting: List<Int>, turns: Int): Int {
     }
 
     while (turn < turns) {
-        val prevTurn = map[prevNumber] ?: turn
+        val prevTurn = map[prevNumber].let { if (it == 0) turn else it }
         val number = turn - prevTurn
 
         map[prevNumber] = turn
