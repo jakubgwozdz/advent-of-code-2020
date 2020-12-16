@@ -33,7 +33,7 @@ class Day16PuzzleTest {
     fun examplePart2() = runTest {
         val sampleInput = """
             class: 0-1 or 4-19
-            departure 1: 0-5 or 8-19
+            departure: 0-5 or 8-19
             seat: 0-13 or 16-19
             
             your ticket:
