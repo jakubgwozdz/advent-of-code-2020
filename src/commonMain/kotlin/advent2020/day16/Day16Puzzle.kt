@@ -4,7 +4,7 @@ data class Field(val name: String, val range1: LongRange, val range2: LongRange)
     operator fun contains(v: Long) = v in range1 || v in range2
 }
 
-val fieldRegex = """(.+): (\d+)-(\d+) or (\d+)-(\d+)""".toRegex()
+val fieldRegex by lazy { """(.+): (\d+)-(\d+) or (\d+)-(\d+)""".toRegex() }
 private fun fields(lines: Sequence<String>): List<Field> = lines
     .takeWhile { it.isNotBlank() }
     .map { fieldRegex.matchEntire(it)?.destructured ?: error("invalid line `$it`") }

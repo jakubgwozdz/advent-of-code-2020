@@ -4,16 +4,12 @@ private fun List<Int>.move(v: List<Int>) = mapIndexed { index, i -> i + v[index]
 
 fun part1(input: String): String {
     var pocket = input.trim().lines()
-        .flatMapIndexed { y, s -> s.mapIndexedNotNull { x, c -> if (c == '#') listOf(x, y) else null } }
-        .map { it + 0 } // z-dimension
+        .flatMapIndexed { y, s ->
+            s.mapIndexedNotNull { x, c -> if (c == '#') listOf(x, y, 0) else null }
+        }
         .toSet()
 
-    val neighbours = (-1..1).flatMap { dx ->
-        (-1..1).flatMap { dy ->
-            (-1..1).map { dz -> listOf(dx, dy, dz) }
-        }
-    }
-        .filterNot { it == listOf(0, 0, 0) }
+    val neighbours = neighbours(3).filterNot { it.all { v -> v == 0 } }
 
     repeat(6) { pocket = cycle(pocket, neighbours) }
 
@@ -23,24 +19,23 @@ fun part1(input: String): String {
 
 fun part2(input: String): String {
     var pocket = input.trim().lines()
-        .flatMapIndexed { y, s -> s.mapIndexedNotNull { x, c -> if (c == '#') listOf(x, y) else null } }
-        .map { it + 0 } // z-dimension
-        .map { it + 0 } // w-dimension
+        .flatMapIndexed { y, s ->
+            s.mapIndexedNotNull { x, c -> if (c == '#') listOf(x, y, 0, 0) else null }
+        }
         .toSet()
 
-    val neighbours = (-1..1).flatMap { dx ->
-        (-1..1).flatMap { dy ->
-            (-1..1).flatMap { dz ->
-                (-1..1).map { dw -> listOf(dx, dy, dz, dw) }
-            }
-        }
-    }
-        .filterNot { it == listOf(0, 0, 0, 0) }
+    val neighbours = neighbours(4).filterNot { it.all { v -> v == 0 } }
 
     repeat(6) { pocket = cycle(pocket, neighbours) }
 
     return pocket.size.toString()
 
+}
+
+private fun neighbours(d: Int): List<List<Int>> = when {
+    d < 0 -> error("d is $d")
+    d == 0 -> listOf(emptyList())
+    else -> neighbours(d - 1).flatMap { l -> (-1..1).map { l + it } }
 }
 
 private fun cycle(

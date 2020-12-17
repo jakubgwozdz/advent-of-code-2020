@@ -2,7 +2,7 @@ package advent2020.day02
 
 internal data class ParsedLine(val number1: Int, val number2: Int, val char: Char, val password: String)
 
-val regexp = """(\d+)-(\d+) (\w): (\w*)""".toRegex()
+val regexp by lazy { """(\d+)-(\d+) (\w): (\w*)""".toRegex() }
 internal fun parse(line: String): ParsedLine {
     val (g1, g2, g3, g4) = regexp.matchEntire(line)?.destructured
         ?: error("line `$line` does not match `$regexp`")

@@ -19,8 +19,8 @@ suspend fun part1(input: String): String {
 
 typealias Vector = Pair<Int, Int>
 
-val part1move: Vector = 3 to 1
-val moves: List<Vector> = listOf(1 to 1, part1move, 5 to 1, 7 to 1, 1 to 2)
+val part1move: Vector by lazy { 3 to 1 }
+val moves: List<Vector> by lazy { listOf(1 to 1, part1move, 5 to 1, 7 to 1, 1 to 2) }
 
 suspend fun part2(input: String, progressLogger: ProgressLogger = object : DayO3ProgressLogger {}): String {
     progressLogger as DayO3ProgressLogger

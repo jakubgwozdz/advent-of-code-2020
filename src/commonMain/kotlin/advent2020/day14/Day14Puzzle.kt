@@ -57,13 +57,13 @@ fun part2(input: String): String {
     return memory.values.sum().toString()
 }
 
-val maskRegex = """mask = ([01X]{36})""".toRegex()
+val maskRegex by lazy { """mask = ([01X]{36})""".toRegex() }
 
 private fun mask(line: String) = maskRegex.matchEntire(line)
     ?.destructured
     ?.component1()
 
-val memOpRegex = """mem\[(\d+)\] = (\d+)""".toRegex()
+val memOpRegex by lazy { """mem\[(\d+)\] = (\d+)""".toRegex() }
 private fun memOp(line: String) = memOpRegex.matchEntire(line)
     ?.destructured
     ?.let { (a, v) -> a.toLong() to v.toLong() }

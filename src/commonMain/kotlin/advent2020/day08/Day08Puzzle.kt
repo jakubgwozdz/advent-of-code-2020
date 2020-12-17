@@ -1,11 +1,9 @@
 package advent2020.day08
 
-import advent2020.day08.OpCode.acc
-import advent2020.day08.OpCode.jmp
-import advent2020.day08.OpCode.nop
+import advent2020.day08.OpCode.*
 import advent2020.utils.binaryInsert
 
-val regex = """(nop|acc|jmp) ([+\-])(\d+)""".toRegex()
+val regex by lazy { """(nop|acc|jmp) ([+\-])(\d+)""".toRegex() }
 
 enum class OpCode { nop, acc, jmp, }
 data class Instruction(val opCode: OpCode, val argument: Int)

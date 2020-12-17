@@ -3,7 +3,7 @@ package advent2020.day11
 import advent2020.utils.atLeast
 import kotlin.time.TimeSource.Monotonic
 
-val directions = (-1..1).flatMap { dr -> (-1..1).map { dc -> (dr to dc) as Pos } } - (0 to 0)
+val directions by lazy { (-1..1).flatMap { dr -> (-1..1).map { dc -> (dr to dc) as Pos } } - (0 to 0) }
 typealias Vector = Pair<Int, Int>
 typealias Pos = Pair<Int, Int>
 
