@@ -9,9 +9,9 @@ import java.nio.file.Paths
 
 // PARAMS
 
-val day = 16
+val day = 17
 val year = 2020
-val pkg = "day16"
+val pkg = "day17"
 
 
 // INIT
