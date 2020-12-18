@@ -3,7 +3,15 @@ package advent2020.day18
 fun part1(input: String): String {
     val lines = input.trim().lineSequence()
 
-    val result = lines.map { solve(it) }.sum()
+    val result = lines.map { solveTokens(parse(it)) }.sum()
+
+    return result.toString()
+}
+
+fun part2(input: String): String {
+    val lines = input.trim().lineSequence()
+
+    val result = lines.map { solveTokens2(parse(it)) }.sum()
 
     return result.toString()
 }
@@ -24,9 +32,13 @@ data class Plus(val n1: Node, val n2: Node) : Node() {
     override fun solve(): Long = n1.solve() + n2.solve()
 }
 
-sealed class Token
+sealed class Token {
+    open fun v(): Long = error("Not supported for ${this::class}")
+}
+
 data class Digits(val v: Long) : Token() {
     override fun toString(): String = v.toString()
+    override fun v() = v
 }
 
 object TimesOp : Token() {
@@ -37,120 +49,81 @@ object PlusOp : Token() {
     override fun toString() = "+"
 }
 
-fun solve(line: String, start: Int = 0, end: Int = line.length): Long {
-//    println("parsing `$line` [$start until $end] `${line.substring(start, end)}`")
-    val tokens = sequence {
-        var i = start
-        while (i < end) {
-            if (line[i] in ('0'..'9')) {
+object OpenParenthesis : Token() {
+    override fun toString() = "("
+}
+
+object CloseParenthesis : Token() {
+    override fun toString() = ")"
+}
+
+private fun parse(line: String): List<Token> = sequence {
+    var i = 0
+    while (i < line.length) {
+        when (line[i]) {
+            in '0'..'9' -> {
                 var j = i + 1
                 while (j < line.length && line[j] in ('0'..'9')) j++
                 yield(Digits(line.substring(i, j).toLong()))
-                i = j
-            } else if (line[i] == '*') {
-                yield(TimesOp); i++
-            } else if (line[i] == '+') {
-                yield(PlusOp); i++
-            } else if (line[i] == ' ') {
-                i++
-            } else if (line[i] == '(') {
-                var j = i + 1
-                var nested = 1
-                while (nested > 0) {
-                    if (line[j] == '(') nested++
-                    if (line[j] == ')') nested--
-                    j++
-                }
-
-                yield(Digits(solve(line, i + 1, j - 1)))
-                i = j
-            } else error("unknown `${line[i]}` @ $i")
+                i = j - 1
+            }
+            '*' -> yield(TimesOp)
+            '+' -> yield(PlusOp)
+            '(' -> yield(OpenParenthesis)
+            ')' -> yield(CloseParenthesis)
+            else -> error("unknown `${line[i]}` @ $i")
         }
-    }.toList()
-
-    val result = solveTokens(tokens)
-
-    return result
-}
-
-fun solveTokens(tokens: List<Token>): Long {
-    var acc = (tokens[0] as Digits).v
-    var i = 1
-    while (i < tokens.size) {
-        if (tokens[i] == PlusOp)
-            acc += (tokens[i + 1] as Digits).v
-        else if (tokens[i] == TimesOp)
-            acc *= (tokens[i + 1] as Digits).v
-        else TODO()
-        i += 2
+        i++
+        while (i < line.length && line[i] == ' ') i++ // skip spaces
     }
-    return acc
-}
+}.toList()
 
-
-fun solve2(line: String, start: Int = 0, end: Int = line.length): Long {
-
-//    println("parsing `$line` [$start until $end] `${line.substring(start, end)}`")
-    val tokens = sequence {
-        var i = start
-        while (i < end) {
-            if (line[i] in ('0'..'9')) {
-                var j = i + 1
-                while (j < line.length && line[j] in ('0'..'9')) j++
-                yield(Digits(line.substring(i, j).toLong()))
-                i = j
-            } else if (line[i] == '*') {
-                yield(TimesOp); i++
-            } else if (line[i] == '+') {
-                yield(PlusOp); i++
-            } else if (line[i] == ' ') {
-                i++
-            } else if (line[i] == '(') {
-                var j = i + 1
-                var nested = 1
-                while (nested > 0) {
-                    if (line[j] == '(') nested++
-                    if (line[j] == ')') nested--
-                    j++
-                }
-
-                yield(Digits(solve2(line, i + 1, j - 1)))
-                i = j
-            } else error("unknown `${line[i]}` @ $i")
+fun solveTokens(tokens: List<Token>): Long = when {
+    tokens.size == 1 -> tokens.single().v()
+    tokens.size == 3 && tokens[1] == PlusOp -> tokens[0].v() + tokens[2].v()
+    tokens.size == 3 && tokens[1] == TimesOp -> tokens[0].v() * tokens[2].v()
+    OpenParenthesis in tokens -> {
+        val i = tokens.indexOf(OpenParenthesis)
+        var j = i + 1
+        var nested = 1
+        while (nested > 0) {
+            if (tokens[j] == OpenParenthesis) nested++
+            if (tokens[j] == CloseParenthesis) nested--
+            j++
         }
-    }.toList()
-
-    val result = solveTokens2(tokens)
-
-    return result
-
-}
-
-fun solveTokens2(tokens: List<Token>): Long {
-
-    var newList = tokens
-    while (newList.contains(PlusOp)) {
-        val i = newList.indexOf(PlusOp)
-        newList = newList.subList(0,
-            i - 1) + Digits((newList[i - 1] as Digits).v + (newList[i + 1] as Digits).v) + newList.subList(i + 2,
-            newList.size)
+        solveTokens(tokens.take(i) + Digits(solveTokens(tokens.subList(i + 1, j - 1))) + tokens.drop(j))
     }
-    while (newList.contains(TimesOp)) {
-        val i = newList.indexOf(TimesOp)
-        newList = newList.subList(0,
-            i - 1) + Digits((newList[i - 1] as Digits).v * (newList[i + 1] as Digits).v) + newList.subList(i + 2,
-            newList.size)
+    tokens.size > 4 -> solveTokens(
+        listOf(Digits(solveTokens(tokens.dropLast(2)))) + tokens.takeLast(2)
+    )
+    else -> error("invalid $tokens")
+}
+
+fun solveTokens2(tokens: List<Token>): Long = when {
+    tokens.size == 1 -> tokens[0].v()
+    tokens.size == 3 && tokens[1] == PlusOp -> tokens[0].v() + tokens[2].v()
+    tokens.size == 3 && tokens[1] == TimesOp -> tokens[0].v() * tokens[2].v()
+    OpenParenthesis in tokens -> {
+        val i = tokens.indexOf(OpenParenthesis)
+        var j = i + 1
+        var nested = 1
+        while (nested > 0) {
+            if (tokens[j] == OpenParenthesis) nested++
+            if (tokens[j] == CloseParenthesis) nested--
+            j++
+        }
+        solveTokens2(tokens.take(i) + Digits(solveTokens2(tokens.subList(i + 1, j - 1))) + tokens.drop(j))
     }
-
-    return (newList.single() as Digits).v
+    PlusOp in tokens -> {
+        val i = tokens.lastIndexOf(PlusOp)
+        solveTokens2(
+            tokens.take(i - 1) + Digits(solveTokens2(tokens.subList(i - 1, i + 2))) + tokens.drop(i + 2)
+        )
+    }
+    tokens.size > 4 -> solveTokens2(
+        listOf(Digits(solveTokens2(tokens.dropLast(2)))) + tokens.takeLast(2)
+    )
+    else -> error("invalid $tokens")
 }
-
-
-fun part2(input: String): String {
-    val lines = input.trim().lineSequence()
-
-    val result = lines.map { solve2(it) }.sum()
-
-    return result.toString()
-}
+    .also { println("${tokens.joinToString("")} = $it") }
 
