@@ -41,4 +41,19 @@ private fun cycle(
 
 private fun List<Int>.move(v: List<Int>) = mapIndexed { index, i -> i + v[index] }
 
+private fun display(iter: Int, pocket: Set<List<Int>>) {
+    println("After $iter cycle(s):")
+    (-iter..+iter).forEach { z ->
+        println("z=$z")
+        (-iter..2 + iter).forEach { y ->
+            (-iter..2 + iter).forEach { x ->
+                print(if (listOf(x, y, z) in pocket) "#" else ".")
+            }
+            println()
+        }
+        println()
+    }
 
+
+    println()
+}
