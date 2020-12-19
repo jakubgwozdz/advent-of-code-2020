@@ -2,8 +2,6 @@ package advent2020.day19
 
 import advent2020.readResource
 import advent2020.runTest
-import advent2020.runTestExpect
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -130,15 +128,13 @@ class Day19PuzzleTest {
     @Test
 //    @Ignore
     fun jakubgwozdzPart1() = runTest {
-//    fun jakubgwozdzPart1() = runTestExpect(NotImplementedError::class) {
         val actual = part1(myPuzzleInput)
         assertEquals("224", actual)
     }
 
     @Test
-    @Ignore
-//    fun jakubgwozdzPart2() = runTest {
-    fun jakubgwozdzPart2() = runTestExpect(NotImplementedError::class) {
+//    @Ignore
+    fun jakubgwozdzPart2() = runTest {
         val actual = part2(myPuzzleInput)
         assertEquals("", actual)
     }

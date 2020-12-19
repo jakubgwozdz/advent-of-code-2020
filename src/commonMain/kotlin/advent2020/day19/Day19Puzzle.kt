@@ -11,8 +11,8 @@ data class ConcatRule(val l: List<Int>) : Rule() {
     override fun toString() = l.joinToString(" ")
 }
 
-data class AlternativeRule(val r1: ConcatRule, val r2: ConcatRule) : Rule() {
-    override fun toString() = "$r1 | $r2"
+data class AlternativeRule(val rules: List<ConcatRule>) : Rule() {
+    override fun toString() = rules.joinToString(" | ")
 }
 
 fun part1(input: String): String {
@@ -22,7 +22,7 @@ fun part1(input: String): String {
     val result = lines.dropWhile { it.isNotBlank() }.filter { it.isNotBlank() }.count { message ->
         check(message.isNotEmpty())
         check(message.all { it == 'a' || it == 'b' })
-        matches(rules[0]!!, rules, message, 0) == message.length
+        matches(rules[0]!!, rules, message, 0).any { it == message.length }
     }
 
     return result.toString()
@@ -42,43 +42,35 @@ fun parseRule(line: String): Pair<Int, Rule> {
     return when {
         v3 == " \"a\"" -> v1.toInt() to CharRule('a')
         v4 == " \"b\"" -> v1.toInt() to CharRule('b')
-        v9.isNotBlank() -> v1.toInt() to AlternativeRule(ConcatRule(list1), ConcatRule(list2))
+        v9.isNotBlank() -> v1.toInt() to AlternativeRule(listOf(ConcatRule(list1), ConcatRule(list2)))
         v6.isNotBlank() -> v1.toInt() to ConcatRule(list1)
         else -> error("what to do with `$line` -> 1:`$v1`, 2:`$v2`, 3:`$v3`, 4:`$v4`, 5:`$v5`, 6:`$v6`, 7:`$v7`, 8:`$v8`, 9:`$v9` , 10:`$v10` ")
     }
 }
 
-fun matches(rule: Rule, rules: Map<Int, Rule>, message: String, start: Int, stack: List<String> = listOf("0")): Int {
+fun matches(rule: Rule, rules: Map<Int, Rule>, message: String, start: Int): Sequence<Int> {
 //    println("==> matching ${message.substring(start)} with $rule")
     return when (rule) {
-        is CharRule -> if (message[start] == rule.c) start + 1 else -1
+        is CharRule -> if (message[start] == rule.c) sequenceOf(start + 1) else emptySequence()
         is AlternativeRule -> {
-            val end = matches(rule.r1, rules, message, start, stack + "${stack.last()}_1")
-            if (end >= 0) end else matches(rule.r2, rules, message, start, stack + "${stack.last()}_2")
+            rule.rules.asSequence()
+                .flatMapIndexed { index, r -> matches(r, rules, message, start) }
+                .filter { it >= 0 }
         }
         is ConcatRule -> {
-            var end = start
-            rule.l.forEach {
-                if (end < 0) return@forEach
-                end = if (end == message.length) -1
-                else matches(rules[it]!!, rules, message, end, stack + "$it")
-            }
-            end
+            var result = matches(rules[rule.l[0]]!!, rules, message, start)
+
+
+            if (rule.l.size > 1)
+                result =
+                    result.filter { it < message.length }.flatMap { matches(rules[rule.l[1]]!!, rules, message, it) }
+            if (rule.l.size > 2)
+                result =
+                    result.filter { it < message.length }.flatMap { matches(rules[rule.l[2]]!!, rules, message, it) }
+            if (rule.l.size > 3) TODO()
+            result
         }
     }
-        .also {
-            if (it >= 0)
-                println(
-                    "<== matched ${message.take(start)}[${
-                        message.substring(
-                            start,
-                            it
-                        )
-                    }]${message.substring(it)} with $rule ($stack)"
-                )
-            else
-                println("<== failed  ${message.take(start)}[${message.substring(start)}  with $rule ($stack)")
-        }
 }
 
 fun part2(input: String): String {
@@ -87,6 +79,14 @@ fun part2(input: String): String {
         .apply {
             parseRule("8: 42 | 42 8").let { (id, r) -> this[id] = r }
             parseRule("11: 42 31 | 42 11 31").let { (id, r) -> this[id] = r }
+//            parseRule()
+//            val possibleRules = (2..50).flatMap { s->
+//                (1..s-1).map { e ->
+//                    ConcatRule(IntArray(s){42}.toList() + IntArray(e){31}.toList())
+//                }
+//            }
+//            this[0] = AlternativeRule(possibleRules)
+
         }
         .toMap()
 
@@ -94,8 +94,8 @@ fun part2(input: String): String {
     val result = lines.dropWhile { it.isNotBlank() }.filter { it.isNotBlank() }.count { message ->
         check(message.isNotEmpty())
         check(message.all { it == 'a' || it == 'b' })
-        (matches(rules[0]!!, rules, message, 0) == message.length)
-            .also { println("`$message` -> $it") }
+        matches(rules[0]!!, rules, message, 0).any { it == message.length }
+//            .also { println("`$message` -> $it") }
     }
 
     return result.toString()
