@@ -36,16 +36,16 @@ data class Plus(val n1: Node, val n2: Node) : Node() {
 }
 
 sealed class Token {
-    open fun v(): Long = error("Not supported for ${this::class}")
-    open fun n(): Node = error("Not supported for ${this::class}")
+    open fun value(): Long = error("Not supported for ${this::class}")
+    open fun node(): Node = error("Not supported for ${this::class}")
 }
 
-val Token.n get() = n()
+val Token.n get() = node()
 
 data class Digits(val v: Long) : Token() {
     override fun toString(): String = v.toString()
-    override fun n(): Node = Value(v)
-    override fun v() = v
+    override fun node(): Node = Value(v)
+    override fun value() = v
 }
 
 object TimesOp : Token() {
@@ -117,9 +117,9 @@ fun splitTokens(tokens: List<Token>, j: Int, groupOp: (List<Token>) -> Node): No
 }
 
 fun solveTokens2(tokens: List<Token>): Long = when {
-    tokens.size == 1 -> tokens[0].v()
-    tokens.size == 3 && tokens[1] == PlusOp -> tokens[0].v() + tokens[2].v()
-    tokens.size == 3 && tokens[1] == TimesOp -> tokens[0].v() * tokens[2].v()
+    tokens.size == 1 -> tokens[0].value()
+    tokens.size == 3 && tokens[1] == PlusOp -> tokens[0].value() + tokens[2].value()
+    tokens.size == 3 && tokens[1] == TimesOp -> tokens[0].value() * tokens[2].value()
     OpenParenthesis in tokens -> {
         val i = tokens.indexOf(OpenParenthesis)
         var j = i + 1
