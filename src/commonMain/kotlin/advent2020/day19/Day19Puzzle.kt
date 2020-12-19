@@ -6,8 +6,8 @@ sealed class Rule
 
 //data class CharRule(val c: Char) : Rule()
 data class StringRule(val s: String) : Rule()
-data class ConcatRule(val l: List<Int>) : Rule()
-
+data class ConcatRawRule(val ids: List<Int>) : Rule()
+data class ConcatRule(val rules: List<Rule>) : Rule()
 data class AlternativeRule(val rules: List<Rule>) : Rule()
 
 fun part1(input: String): String {
@@ -47,6 +47,10 @@ fun parseRules(lines: List<String>): Map<Int, Rule> {
         check = false
         map.keys.toSet().filter { it != 0 }.forEach { id ->
             val r = map[id]
+            if (r is ConcatRawRule) {
+                val newR = optConcatRaw(r, map)
+                if (r != newR) map[id] = newR.also { check = true }
+            }
             if (r is ConcatRule) {
                 val newR = optConcat(r, map)
                 if (r != newR) map[id] = newR.also { check = true }
@@ -58,32 +62,39 @@ fun parseRules(lines: List<String>): Map<Int, Rule> {
         }
 
     }
+//    map.forEach { (id, rule)-> println("$id: $rule") }
     return map.toMap()
 }
 
-fun optConcat(r: ConcatRule, map: Map<Int, Rule>) = when {
-    r.l.all { map[it] is StringRule } -> {
-        val newRule = StringRule(r.l.joinToString("") { (map[it] as StringRule).s })
+fun optConcatRaw(r: ConcatRawRule, map: Map<Int, Rule>) = ConcatRule(r.ids.map { map[it]!! })
+
+fun optConcat(r: ConcatRule, map: Map<Int, Rule>): Rule = when {
+    r.rules.all { it is StringRule } -> {
+        val newRule = StringRule(r.rules.joinToString("") { (it as StringRule).s })
         newRule
     }
-    r.l.all { map[it] is ConcatRule } -> {
-        val newRule = ConcatRule(r.l.fold(emptyList()) { acc, i -> acc + (map[i] as ConcatRule).l })
+    r.rules.all { it is ConcatRule } -> {
+        val newRule = ConcatRule(r.rules.fold(emptyList()) { acc, i -> acc + (i as ConcatRule).rules })
         newRule
     }
-    else -> r
+    else -> ConcatRule(r.rules.map {
+        when (it) {
+            is ConcatRawRule -> optConcatRaw(it, map)
+            is ConcatRule -> optConcat(it, map)
+            is AlternativeRule -> optAlternative(it, map)
+            else -> it
+        }
+    })
 }
 
-fun optAlternative(r: AlternativeRule, map: Map<Int, Rule>): Rule {
-    return AlternativeRule(r.rules.map { if (it is ConcatRule) optConcat(it, map) else it })
-//        .let { r2->
-//            if (r2.rules.all { it is ConcatRule && map[it.l.first()] is StringRule }) {
-//                val f = map[(r2.rules.first() as ConcatRule).l.first()] as StringRule
-//                if (r2.rules.all { (it as ConcatRule).l.first().let { map [it] as StringRule}.s == f.s} ) {
-//                    ConcatRule(listOf(f))
-//                } else r2
-//            } else r2
-//        }
-}
+fun optAlternative(r: AlternativeRule, map: Map<Int, Rule>): Rule = AlternativeRule(r.rules.map {
+    when (it) {
+        is ConcatRawRule -> optConcatRaw(it, map)
+        is ConcatRule -> optConcat(it, map)
+        is AlternativeRule -> optAlternative(it, map)
+        else -> it
+    }
+})
 
 
 fun parseRule(rules: String): Pair<Int, Rule> {
@@ -94,8 +105,8 @@ fun parseRule(rules: String): Pair<Int, Rule> {
     return when {
         v3 == " \"a\"" -> v1.toInt() to StringRule("a")
         v4 == " \"b\"" -> v1.toInt() to StringRule("b")
-        v9.isNotBlank() -> v1.toInt() to AlternativeRule(listOf(ConcatRule(list1), ConcatRule(list2)))
-        v6.isNotBlank() -> v1.toInt() to ConcatRule(list1)
+        v9.isNotBlank() -> v1.toInt() to AlternativeRule(listOf(ConcatRawRule(list1), ConcatRawRule(list2)))
+        v6.isNotBlank() -> v1.toInt() to ConcatRawRule(list1)
         else -> error("what to do with `$rules` -> 1:`$v1`, 2:`$v2`, 3:`$v3`, 4:`$v4`, 5:`$v5`, 6:`$v6`, 7:`$v7`, 8:`$v8`, 9:`$v9` , 10:`$v10` ")
     }
 }
@@ -114,7 +125,6 @@ var tests = 0L
 fun matches(rule: Rule, rules: Map<Int, Rule>, message: String, start: Int): Sequence<Int> {
     tests++
     return when (rule) {
-//        is CharRule -> if (message[start] == rule.c) sequenceOf(start + 1) else emptySequence()
         is StringRule -> if (message.startsWith(rule.s, start)) sequenceOf(start + rule.s.length) else emptySequence()
         is AlternativeRule -> {
             rule.rules.asSequence()
@@ -122,7 +132,13 @@ fun matches(rule: Rule, rules: Map<Int, Rule>, message: String, start: Int): Seq
                 .filter { it >= 0 }
         }
         is ConcatRule -> {
-            rule.l.asSequence().drop(1).fold(matches(rules[rule.l[0]]!!, rules, message, start)) { acc, i ->
+//            if (rule.rules.any { it is StringRule && !message.substring(start).contains(it.s) }) emptySequence() else
+            rule.rules.asSequence().drop(1).fold(matches(rule.rules[0], rules, message, start)) { acc, i ->
+                acc.filter { it < message.length }.flatMap { matches(i, rules, message, it) }
+            }
+        }
+        is ConcatRawRule -> {
+            rule.ids.asSequence().drop(1).fold(matches(rules[rule.ids[0]]!!, rules, message, start)) { acc, i ->
                 acc.filter { it < message.length }.flatMap { matches(rules[i]!!, rules, message, it) }
             }
         }
