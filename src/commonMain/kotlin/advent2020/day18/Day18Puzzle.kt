@@ -11,7 +11,7 @@ fun part1(input: String): String {
 fun part2(input: String): String {
     val lines = input.trim().lineSequence()
 
-    val result = lines.map { solveTokens2(parse(it).toList()) }.sum()
+    val result = lines.map { groupTokens2(parse(it).toList()).solve() }.sum()
 
     return result.toString()
 }
@@ -113,34 +113,48 @@ fun splitTokens(tokens: List<Token>, j: Int, groupOp: (List<Token>) -> Node): No
         else -> error("invalid token in $tokens @ $j")
     }
 
-    return op(groupTokens(tokens.take(j)), groupOp(tokens.drop(j + 1)))
+    return op(groupOp(tokens.take(j)), groupOp(tokens.drop(j + 1)))
 }
 
-fun solveTokens2(tokens: List<Token>): Long = when {
-    tokens.size == 1 -> tokens[0].v()
-    tokens.size == 3 && tokens[1] == PlusOp -> tokens[0].v() + tokens[2].v()
-    tokens.size == 3 && tokens[1] == TimesOp -> tokens[0].v() * tokens[2].v()
-    OpenParenthesis in tokens -> {
-        val i = tokens.indexOf(OpenParenthesis)
-        var j = i + 1
+fun groupTokens2(tokens: List<Token>): Node = when {
+    tokens.size == 1 -> tokens.first().n
+    tokens.size == 3 && tokens[1] == PlusOp -> Plus(tokens[0].n, tokens[2].n)
+    tokens.size == 3 && tokens[1] == TimesOp -> Times(tokens[0].n, tokens[2].n)
+//    OpenParenthesis in tokens -> {
+//        val i = tokens.indexOf(OpenParenthesis)
+//        var j = i + 1
+//        var nested = 1
+//        while (nested > 0) {
+//            if (tokens[j] == OpenParenthesis) nested++
+//            if (tokens[j] == CloseParenthesis) nested--
+//            j++
+//        }
+//        groupTokens2(tokens.take(i) + Digits(groupTokens2(tokens.subList(i + 1, j - 1)).solve()) + tokens.drop(j))
+//    }
+    CloseParenthesis in tokens -> {
+        val i = tokens.lastIndexOf(CloseParenthesis)
+        var j = i - 1
         var nested = 1
         while (nested > 0) {
-            if (tokens[j] == OpenParenthesis) nested++
-            if (tokens[j] == CloseParenthesis) nested--
-            j++
+            if (tokens[j] == CloseParenthesis) nested++
+            if (tokens[j] == OpenParenthesis) nested--
+            j--
         }
-        solveTokens2(tokens.take(i) + Digits(solveTokens2(tokens.subList(i + 1, j - 1))) + tokens.drop(j))
+        if (j < 0) {
+            if (i == tokens.size - 1)
+                groupTokens2(tokens.drop(1).dropLast(1))
+            else
+                TODO()
+        } else {
+            splitTokens(tokens, j, ::groupTokens2)
+        }
     }
-    PlusOp in tokens -> {
-        val i = tokens.lastIndexOf(PlusOp)
-        solveTokens2(
-            tokens.take(i - 1) + Digits(solveTokens2(tokens.subList(i - 1, i + 2))) + tokens.drop(i + 2)
-        )
+    tokens[tokens.size - 2] == TimesOp -> splitTokens(tokens, tokens.size - 2, ::groupTokens2)
+    TimesOp in tokens -> {
+        val i = tokens.lastIndexOf(TimesOp)
+        splitTokens(tokens, i, ::groupTokens2)
     }
-    tokens.size > 4 -> solveTokens2(
-        listOf(Digits(solveTokens2(tokens.dropLast(2)))) + tokens.takeLast(2)
-    )
-    else -> error("invalid $tokens")
+    else -> splitTokens(tokens, tokens.size - 2, ::groupTokens2)
 }
     .also { println("${tokens.joinToString("")} = $it") }
 
