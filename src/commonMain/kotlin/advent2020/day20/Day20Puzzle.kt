@@ -7,7 +7,7 @@ data class Orientation(val topEdge: Edge, val flip: Boolean)
 
 data class Match(val edge1: Edge, val edge2: Edge, val flip: Boolean)
 
-fun List<Char>.asInt() = map { if (it == '#') '1' else '0' }.joinToString("").toInt(2)
+fun List<Char>.asInt() = map { if (it == '#') "1" else "0" }.joinToString("").toInt(2)
 
 data class Tile(val id: Long, val lines: List<String>) {
     val size = lines.count()
