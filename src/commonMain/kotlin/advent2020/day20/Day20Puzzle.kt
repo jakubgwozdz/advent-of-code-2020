@@ -220,36 +220,27 @@ fun part2(input: String): String {
 
     val full = Tile(0, image.map { line -> line.joinToString("") })
 
-//    val str = "                  # \n#    ##    ##    ###\n #  #  #  #  #  #   "
+    val str = """
+        |                  # 
+        |#    ##    ##    ###
+        | #  #  #  #  #  #   
+        """.trimMargin()
+
+    val monster = str.lines()
+        .flatMapIndexed { y: Int, l: String -> l.mapIndexedNotNull { x, c -> if (c == '#') y to x else null } }
 
     val monsters = Edge.values().flatMap { listOf(Orientation(it, false), Orientation(it, true)) }
         .sumBy { o ->
-            println("testing $o")
             (0..image.size).sumBy { y ->
                 (0..image.size).count { x ->
-                    full.at(y, x + 18, o) == '#' &&
-                            full.at(y + 1, x, o) == '#' &&
-                            full.at(y + 1, x + 5, o) == '#' &&
-                            full.at(y + 1, x + 6, o) == '#' &&
-                            full.at(y + 1, x + 11, o) == '#' &&
-                            full.at(y + 1, x + 12, o) == '#' &&
-                            full.at(y + 1, x + 17, o) == '#' &&
-                            full.at(y + 1, x + 18, o) == '#' &&
-                            full.at(y + 1, x + 19, o) == '#' &&
-                            full.at(y + 2, x + 1, o) == '#' &&
-                            full.at(y + 2, x + 4, o) == '#' &&
-                            full.at(y + 2, x + 7, o) == '#' &&
-                            full.at(y + 2, x + 10, o) == '#' &&
-                            full.at(y + 2, x + 13, o) == '#' &&
-                            full.at(y + 2, x + 16, o) == '#'
+                    monster.all { (my, mx) -> full.at(y + my, x + mx, o) == '#' }
                 }
             }
-                .also { println("count $it") }
         }
 
     val hashes = image.sumBy { it.count { c -> c == '#' } }
 
-    val result = hashes - 15 * monsters
+    val result = hashes - monster.size * monsters
 
     return result.toString()
 }

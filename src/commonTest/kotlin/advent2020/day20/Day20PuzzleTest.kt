@@ -141,7 +141,7 @@ class Day20PuzzleTest {
     @Test
     fun jakubgwozdzPart2() = runTest {
         val actual = part2(myPuzzleInput)
-        assertEquals("", actual)
+        assertEquals("1565", actual)
     }
 
 }
