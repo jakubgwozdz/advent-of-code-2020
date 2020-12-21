@@ -16,7 +16,7 @@ fun part1(input: String): String {
 
     tests = 0L
     return validate(lines.dropWhile { it.isNotBlank() }.filter { it.isNotBlank() }, rules).toString()
-        .also { println("tests: $tests") }
+//        .also { println("tests: $tests") }
 
 }
 
@@ -32,7 +32,7 @@ fun part2(input: String): String {
     tests = 0L
 
     return validate(lines.dropWhile { it.isNotBlank() }.filter { it.isNotBlank() }, rules).toString()
-        .also { println("tests: $tests") }
+//        .also { println("tests: $tests") }
 }
 
 fun parseRules(lines: List<String>): Map<Int, Rule> {

@@ -142,5 +142,5 @@ fun solveTokens2(tokens: List<Token>): Long = when {
     )
     else -> error("invalid $tokens")
 }
-    .also { println("${tokens.joinToString("")} = $it") }
+//    .also { println("${tokens.joinToString("")} = $it") }
 

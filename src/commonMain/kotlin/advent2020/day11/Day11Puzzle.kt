@@ -66,7 +66,7 @@ fun common(area: Area, seatsWithNeighbours: List<Pair<Pos, List<Pos>>>, leaveThr
     val odd = BooleanArray(area.rows * cols, area::occupied)
 
     var count = 0
-    println("$count: ${s.elapsedNow()}")
+//    println("$count: ${s.elapsedNow()}")
 
     while (true) {
 
@@ -81,7 +81,7 @@ fun common(area: Area, seatsWithNeighbours: List<Pair<Pos, List<Pos>>>, leaveThr
 
         count++
 
-        println("$count: ${s.elapsedNow()}")
+//        println("$count: ${s.elapsedNow()}")
         if (even.contentEquals(odd)) {
             return seatsWithNeighbours.count { (pos, _) -> dest[pos.first * cols + pos.second] }
         }

@@ -2,8 +2,8 @@ package advent2020.day07
 
 import advent2020.ProgressLogger
 
-val outerRegex = """(\w+ \w+) bags contain (.*)\.""".toRegex()
-val innerRegex = """(\d+) (\w+ \w+) (bag|bags)""".toRegex()
+val outerRegex by lazy { """(\w+ \w+) bags contain (.*)\.""".toRegex() }
+val innerRegex by lazy { """(\d+) (\w+ \w+) (bag|bags)""".toRegex() }
 
 fun parseRules(input: String) = input.trim().lines()
     .map { outerRegex.matchEntire(it)?.destructured ?: error("'$it' doesnt match") }
@@ -61,10 +61,14 @@ suspend fun bagsInside(
     logger: ProgressLogger,
     cache: MutableMap<String, Int> = mutableMapOf(), // cache is optional, reduces number of calls from ~90 to ~20
 ): Int {
-    return cache[outerBag]?.also {if (logger is Day07ProgressLogger) logger.alreadyKnown(outerBag) }
+    return cache[outerBag]?.also { if (logger is Day07ProgressLogger) logger.alreadyKnown(outerBag) }
         ?: (rules[outerBag] ?: error("unknown bag $outerBag"))
             .map { (innerBag, count) ->
-                if (logger is Day07ProgressLogger) logger.entering(outerBag, innerBag, count) // log before counting inside
+                if (logger is Day07ProgressLogger) logger.entering(
+                    outerBag,
+                    innerBag,
+                    count
+                ) // log before counting inside
                 count * (1 + (bagsInside(innerBag, rules, logger, cache).also { // log after counting inside
                     if (logger is Day07ProgressLogger) logger.exiting(outerBag, innerBag, count, it)
                 }))

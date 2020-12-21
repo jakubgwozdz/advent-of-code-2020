@@ -48,7 +48,7 @@ fun part2(input: String): String {
                 fields.filterNot { v in it }
                     .map { it.name }
                     .forEach {
-                        println("`$it` can't be at $index because of $ticket")
+//                        println("`$it` can't be at $index because of $ticket")
                         fieldIndices[it]!! -= index
                     }
             }
@@ -86,11 +86,11 @@ fun doSearchStep(fieldIndices: Map<String, MutableSet<Int>>): Boolean {
     val newIndicesWithOneField = indicesWithOneField - fieldsWithOneIndex
 
     newFieldsWithOneIndex.forEach { (f, i) ->
-        println("`$f` can be only at $i")
+//        println("`$f` can be only at $i")
         fieldIndices.forEach { (f1, s) -> if (f1 != f && i in s) s -= i.also { changed = true } }
     }
     newIndicesWithOneField.forEach { (f, i) ->
-        println("at $i can be only `$f`")
+//        println("at $i can be only `$f`")
         fieldIndices.forEach { (f1, s) -> if (f1 == f && s.size > 1) s.retainAll(setOf(i)).also { changed = true } }
     }
 

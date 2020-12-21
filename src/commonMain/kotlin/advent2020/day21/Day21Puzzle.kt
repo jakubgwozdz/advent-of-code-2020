@@ -19,10 +19,14 @@ fun part2(input: String): String {
     var again = true
     while (again) {
         again = false
-        matches.mapNotNull { (allergen, ingredients) -> ingredients.singleOrNull()?.let { allergen to it } }
+        matches
+            .mapNotNull { (allergen, ingredients) -> ingredients.singleOrNull()?.let { allergen to it } }
             .forEach { (allergen, ingredient) ->
-                matches.filterKeys { it != allergen }
-                    .forEach { (_, s2) -> if (ingredient in s2) s2 -= ingredient.also { again = true } }
+                matches.forEach { (a2, i2) ->
+                    if (a2 != allergen && ingredient in i2) i2 -= ingredient.also {
+                        again = true
+                    }
+                }
             }
     }
 
