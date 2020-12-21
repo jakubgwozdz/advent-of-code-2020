@@ -3,10 +3,10 @@ package advent2020.day18
 fun part1(input: String): String {
     val lines = input.trim().lineSequence()
 
+    // priority: parenthesis, rest
     val result = lines
         .map { shuntingYard(parse(it).toList()) { prev, _ -> prev != OpenParenthesis } }
-        .map { tree(it) }
-        .map { it.solve() }
+        .map { rpn(it) }
         .sum()
 
     return result.toString()
@@ -15,10 +15,10 @@ fun part1(input: String): String {
 fun part2(input: String): String {
     val lines = input.trim().lineSequence()
 
+    // priority: parenthesis, plus, times
     val result = lines
-        .map { shuntingYard(parse(it).toList()) { prev, current -> prev == PlusOp || prev == current } }
-        .map { tree(it) }
-        .map { it.solve() }
+        .map { shuntingYard(parse(it).toList()) { prev, current -> current == TimesOp && prev == TimesOp || prev == PlusOp } }
+        .map { rpn(it) }
         .sum()
 
     return result.toString()
@@ -75,30 +75,14 @@ private fun shuntingYard(tokens: List<Token>, priorityOp: (Token, Token) -> Bool
     return rpn.toList()
 }
 
-sealed class Node {
-    abstract fun solve(): Long
-}
+private fun rpn(rpn: List<Token>): Long {
 
-data class Value(val v: Long) : Node() {
-    override fun solve() = v
-}
-
-data class Times(val n1: Node, val n2: Node) : Node() {
-    override fun solve(): Long = n1.solve() * n2.solve()
-}
-
-data class Plus(val n1: Node, val n2: Node) : Node() {
-    override fun solve(): Long = n1.solve() + n2.solve()
-}
-
-private fun tree(rpn: List<Token>): Node {
-
-    val result = mutableListOf<Node>()
+    val result = mutableListOf<Long>()
     rpn.forEach {
         when (it) {
-            is Digits -> result.add(Value(it.v))
-            is PlusOp -> result.add(Plus(result.removeLast(), result.removeLast()))
-            is TimesOp -> result.add(Times(result.removeLast(), result.removeLast()))
+            is Digits -> result.add(it.v)
+            is PlusOp -> result.add(result.removeLast() + result.removeLast())
+            is TimesOp -> result.add(result.removeLast() * result.removeLast())
             else -> error("invalid token $it")
         }
     }
