@@ -2,7 +2,6 @@ package advent2020.day21
 
 import advent2020.readResource
 import advent2020.runTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -11,33 +10,41 @@ class Day21PuzzleTest {
     val myPuzzleInput by lazy { readResource("day21") }
 
     @Test
-    @Ignore
+//    @Ignore
     fun examplePart1() = runTest {
-        val sampleInput = """"""
+        val sampleInput = """
+            mxmxvkd kfcds sqjhc nhms (contains dairy, fish)
+            trh fvjkl sbzzf mxmxvkd (contains dairy)
+            sqjhc fvjkl (contains soy)
+            sqjhc mxmxvkd sbzzf (contains fish)
+            """.trimIndent()
         val actual = part1(sampleInput)
-        assertEquals("", actual)
+        assertEquals("5", actual)
     }
 
     @Test
-    @Ignore
     fun examplePart2() = runTest {
-        val sampleInput = """"""
+        val sampleInput = """
+            mxmxvkd kfcds sqjhc nhms (contains dairy, fish)
+            trh fvjkl sbzzf mxmxvkd (contains dairy)
+            sqjhc fvjkl (contains soy)
+            sqjhc mxmxvkd sbzzf (contains fish)
+            """.trimIndent()
         val actual = part2(sampleInput)
-        assertEquals("", actual)
+        assertEquals("mxmxvkd,sqjhc,fvjkl", actual)
     }
 
     @Test
-    @Ignore
+//    @Ignore
     fun jakubgwozdzPart1() = runTest {
         val actual = part1(myPuzzleInput)
-        assertEquals("", actual)
+        assertEquals("2389", actual)
     }
 
     @Test
-    @Ignore
     fun jakubgwozdzPart2() = runTest {
         val actual = part2(myPuzzleInput)
-        assertEquals("", actual)
+        assertEquals("fsr,skrxt,lqbcg,mgbv,dvjrrkv,ndnlm,xcljh,zbhp", actual)
     }
 
 }
