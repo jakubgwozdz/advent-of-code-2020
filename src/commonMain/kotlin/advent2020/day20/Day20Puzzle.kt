@@ -5,23 +5,23 @@ import advent2020.utils.groups
 enum class Edge { top, right, bottom, left }
 data class Orientation(val topEdge: Edge, val flip: Boolean)
 
-data class Match(val edge1: Edge, val edge2: Edge, val flip: Boolean)
-
 fun List<Char>.asInt() = map { if (it == '#') "1" else "0" }.joinToString("").toInt(2)
 
 data class Tile(val id: Long, val lines: List<String>) {
     val size = lines.count()
-    val top = lines.first().toList().asInt()
-    val topR = lines.first().toList().reversed().asInt()
+    private val top = lines.first().toList().asInt()
+    private val topR = lines.first().toList().reversed().asInt()
 
-    val right = lines.map { it.last() }.asInt()
-    val rightR = lines.map { it.last() }.reversed().asInt()
+    private val right = lines.map { it.last() }.asInt()
+    private val rightR = lines.map { it.last() }.reversed().asInt()
 
-    val bottomR = lines.last().toList().asInt()
-    val bottom = lines.last().toList().reversed().asInt()
+    private val bottomR = lines.last().toList().asInt()
+    private val bottom = lines.last().toList().reversed().asInt()
 
-    val leftR = lines.map { it.first() }.asInt()
-    val left = lines.map { it.first() }.reversed().asInt()
+    private val leftR = lines.map { it.first() }.asInt()
+    private val left = lines.map { it.first() }.reversed().asInt()
+
+    private val edgesCodes = listOf(top, right, bottom, left, topR, rightR, bottomR, leftR)
 
     fun at(y: Int, x: Int, o: Orientation): Char {
         val (topEdge, flip) = o
@@ -41,38 +41,10 @@ data class Tile(val id: Long, val lines: List<String>) {
     }
 
     fun match(o: Tile) = when {
-        top == o.bottomR -> Match(Edge.top, Edge.bottom, false)
-        top == o.leftR -> Match(Edge.top, Edge.left, false)
-        top == o.topR -> Match(Edge.top, Edge.top, false)
-        top == o.rightR -> Match(Edge.top, Edge.right, false)
-        right == o.bottomR -> Match(Edge.right, Edge.bottom, false)
-        right == o.leftR -> Match(Edge.right, Edge.left, false)
-        right == o.topR -> Match(Edge.right, Edge.top, false)
-        right == o.rightR -> Match(Edge.right, Edge.right, false)
-        bottom == o.bottomR -> Match(Edge.bottom, Edge.bottom, false)
-        bottom == o.leftR -> Match(Edge.bottom, Edge.left, false)
-        bottom == o.topR -> Match(Edge.bottom, Edge.top, false)
-        bottom == o.rightR -> Match(Edge.bottom, Edge.right, false)
-        left == o.bottomR -> Match(Edge.left, Edge.bottom, false)
-        left == o.leftR -> Match(Edge.left, Edge.left, false)
-        left == o.topR -> Match(Edge.left, Edge.top, false)
-        left == o.rightR -> Match(Edge.left, Edge.right, false)
-        top == o.bottom -> Match(Edge.top, Edge.bottom, true)
-        top == o.left -> Match(Edge.top, Edge.left, true)
-        top == o.top -> Match(Edge.top, Edge.top, true)
-        top == o.right -> Match(Edge.top, Edge.right, true)
-        right == o.bottom -> Match(Edge.right, Edge.bottom, true)
-        right == o.left -> Match(Edge.right, Edge.left, true)
-        right == o.top -> Match(Edge.right, Edge.top, true)
-        right == o.right -> Match(Edge.right, Edge.right, true)
-        bottom == o.bottom -> Match(Edge.bottom, Edge.bottom, true)
-        bottom == o.left -> Match(Edge.bottom, Edge.left, true)
-        bottom == o.top -> Match(Edge.bottom, Edge.top, true)
-        bottom == o.right -> Match(Edge.bottom, Edge.right, true)
-        left == o.bottom -> Match(Edge.left, Edge.bottom, true)
-        left == o.left -> Match(Edge.left, Edge.left, true)
-        left == o.top -> Match(Edge.left, Edge.top, true)
-        left == o.right -> Match(Edge.left, Edge.right, true)
+        top in o.edgesCodes -> Edge.top
+        right in o.edgesCodes -> Edge.right
+        bottom in o.edgesCodes -> Edge.bottom
+        left in o.edgesCodes -> Edge.left
         else -> null
     }
 }
@@ -91,7 +63,7 @@ fun part1(input: String): String {
 private fun matches(tiles: Map<Long, Tile>) = tiles.map { (id1, t1) ->
     id1 to tiles
         .filter { (id2, _) -> id1 != id2 }
-        .map { (id2, t2) -> t1.match(t2)?.let { id2 to it } }
+        .map { (id2, t2) -> t1.match(t2)?.let { it to id2 } }
         .filterNotNull()
         .toMap()
 }.toMap()
@@ -125,43 +97,43 @@ fun part2(input: String): String {
     // first of first edge
     (1).let { c ->
         val prev = jigsaw[0][c - 1]!!
-        val next = matches[prev]!!.keys.first { it in edgeTiles && it !in used }
+        val next = matches[prev]!!.values.first { it in edgeTiles && it !in used }
         place(next, 0, c, jigsaw, used)
     }
     // rest of first edge
     (2 until width - 1).forEach { c ->
         val prev = jigsaw[0][c - 1]!!
-        val next = matches[prev]!!.keys.single { it in edgeTiles && it !in used }
+        val next = matches[prev]!!.values.single { it in edgeTiles && it !in used }
         place(next, 0, c, jigsaw, used)
     }
     // second edge
     (1 until width - 1).forEach { r ->
         val prev = jigsaw[r - 1][0]!!
-        val next = matches[prev]!!.keys.single { it in edgeTiles && it !in used }
+        val next = matches[prev]!!.values.single { it in edgeTiles && it !in used }
         place(next, r, 0, jigsaw, used)
     }
     // second corner
-    cornerTiles.first { jigsaw[0][width - 2]!! in matches[it]!! && it !in used }.let { next ->
+    cornerTiles.first { jigsaw[0][width - 2]!! in matches[it]!!.values && it !in used }.let { next ->
         place(next, 0, width - 1, jigsaw, used)
     }
     // third corner
-    cornerTiles.first { jigsaw[width - 2][0]!! in matches[it]!! && it !in used }.let { next ->
+    cornerTiles.first { jigsaw[width - 2][0]!! in matches[it]!!.values && it !in used }.let { next ->
         place(next, width - 1, 0, jigsaw, used)
     }
     // third edge
     (1 until width - 1).forEach { r ->
         val prev = jigsaw[r - 1][width - 1]!!
-        val next = matches[prev]!!.keys.single { it in edgeTiles && it !in used }
+        val next = matches[prev]!!.values.single { it in edgeTiles && it !in used }
         place(next, r, width - 1, jigsaw, used)
     }
     // fourth edge
     (1 until width - 1).forEach { c ->
         val prev = jigsaw[width - 1][c - 1]!!
-        val next = matches[prev]!!.keys.single { it in edgeTiles && it !in used }
+        val next = matches[prev]!!.values.single { it in edgeTiles && it !in used }
         place(next, width - 1, c, jigsaw, used)
     }
     // fourth corner
-    cornerTiles.first { jigsaw[width - 2][width - 1]!! in matches[it]!! && it !in used }.let { next ->
+    cornerTiles.first { jigsaw[width - 2][width - 1]!! in matches[it]!!.values && it !in used }.let { next ->
         place(next, width - 1, width - 1, jigsaw, used)
     }
 
@@ -171,7 +143,7 @@ fun part2(input: String): String {
             val onTop = jigsaw[r - 1][c]!!
             val onLeft = jigsaw[r][c - 1]!!
             val next =
-                matches[onTop]!!.keys.intersect(matches[onLeft]!!.keys).single { it in insideTiles && it !in used }
+                matches[onTop]!!.values.intersect(matches[onLeft]!!.values).single { it in insideTiles && it !in used }
             place(next, r, c, jigsaw, used)
         }
     }
@@ -188,10 +160,10 @@ fun part2(input: String): String {
             val actLeft = if (c - 1 in jigsaw[r].indices) jigsaw[r][c - 1] else null
             val actRight = if (c + 1 in jigsaw[r].indices) jigsaw[r][c + 1] else null
             val m = matches[tile]!!
-            val expTop = m.entries.singleOrNull { it.value.edge1 == Edge.top }?.key
-            val expBottom = m.entries.singleOrNull { it.value.edge1 == Edge.bottom }?.key
-            val expLeft = m.entries.singleOrNull { it.value.edge1 == Edge.left }?.key
-            val expRight = m.entries.singleOrNull { it.value.edge1 == Edge.right }?.key
+            val expTop = m[Edge.top]
+            val expBottom = m[Edge.bottom]
+            val expLeft = m[Edge.left]
+            val expRight = m[Edge.right]
             val act = listOf(actTop, actRight, actBottom, actLeft)
             val orientation =
                 Edge.values().flatMap { listOf(Orientation(it, false), Orientation(it, true)) }
