@@ -1,8 +1,10 @@
 package advent2020.day21
 
+data class Food(val ingredients: List<String>, val allergens: List<String>)
+
 fun part1(input: String): String {
     val foods = foods(input)
-    val ingredients = foods.map { it.first }.flatten()
+    val ingredients = foods.map { it.ingredients }.flatten()
 
     val unsafe = matches(foods).values.reduce(Set<String>::plus)
     val safe = ingredients.filterNot { it in unsafe }.toSet()
@@ -14,18 +16,17 @@ fun part1(input: String): String {
 
 fun part2(input: String): String {
     val foods = foods(input)
-    val matches = matches(foods)
+    val matches = matches(foods).mapValues { it.value.toMutableSet() }
 
     var again = true
     while (again) {
         again = false
-        matches
+        val knownUnsafeIngredients = matches
             .mapNotNull { (allergen, ingredients) -> ingredients.singleOrNull()?.let { allergen to it } }
+        knownUnsafeIngredients
             .forEach { (allergen, ingredient) ->
                 matches.forEach { (a2, i2) ->
-                    if (a2 != allergen && ingredient in i2) i2 -= ingredient.also {
-                        again = true
-                    }
+                    if (a2 != allergen && ingredient in i2) i2 -= ingredient.also { again = true }
                 }
             }
     }
@@ -33,7 +34,7 @@ fun part2(input: String): String {
     return matches.entries.sortedBy { it.key }.joinToString(",") { it.value.single() }
 }
 
-private fun matches(foods: List<Pair<List<String>, List<String>>>) = foods
+private fun matches(foods: List<Food>) = foods
     .map { (ingredients, allergens) ->
         allergens.map { it to ingredients.toSet() }.toMap()
     }
@@ -49,17 +50,16 @@ private fun matches(foods: List<Pair<List<String>, List<String>>>) = foods
             }
         }
     }
-    .mapValues { it.value.toMutableSet() }
 
 val regex by lazy { """((\w+ )+)\(contains ((\w+(, )?)+)\)""".toRegex() }
 
-private fun foods(input: String): List<Pair<List<String>, List<String>>> =
+private fun foods(input: String): List<Food> =
     input.trim().lines()
         .map { regex.matchEntire(it)?.destructured ?: error("`$it` doesn't match") }
         .map { (gr1, _, gr3) ->
             val ingredients = gr1.split(" ").filter { it.isNotBlank() }
             val allergens = gr3.split(", ").filter { it.isNotBlank() }
-            ingredients to allergens
+            Food(ingredients, allergens)
         }
 
 

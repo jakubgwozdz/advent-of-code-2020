@@ -116,45 +116,57 @@ fun splitTokens(tokens: List<Token>, j: Int, groupOp: (List<Token>) -> Node): No
     return op(groupOp(tokens.take(j)), groupOp(tokens.drop(j + 1)))
 }
 
-fun groupTokens2(tokens: List<Token>): Node = when {
-    tokens.size == 1 -> tokens.first().n
-    tokens.size == 3 && tokens[1] == PlusOp -> Plus(tokens[0].n, tokens[2].n)
-    tokens.size == 3 && tokens[1] == TimesOp -> Times(tokens[0].n, tokens[2].n)
-//    OpenParenthesis in tokens -> {
-//        val i = tokens.indexOf(OpenParenthesis)
-//        var j = i + 1
-//        var nested = 1
-//        while (nested > 0) {
-//            if (tokens[j] == OpenParenthesis) nested++
-//            if (tokens[j] == CloseParenthesis) nested--
-//            j++
-//        }
-//        groupTokens2(tokens.take(i) + Digits(groupTokens2(tokens.subList(i + 1, j - 1)).solve()) + tokens.drop(j))
-//    }
-    CloseParenthesis in tokens -> {
-        val i = tokens.lastIndexOf(CloseParenthesis)
-        var j = i - 1
-        var nested = 1
-        while (nested > 0) {
-            if (tokens[j] == CloseParenthesis) nested++
-            if (tokens[j] == OpenParenthesis) nested--
-            j--
-        }
-        if (j < 0) {
-            if (i == tokens.size - 1)
-                groupTokens2(tokens.drop(1).dropLast(1))
-            else
-                TODO()
-        } else {
-            splitTokens(tokens, j, ::groupTokens2)
+fun groupTokens2(tokens: List<Token>): Node {
+    val rpn = mutableListOf<Token>()
+    val stack = mutableListOf<Token>()
+
+    // shunting-yard
+    tokens.forEach { token ->
+        when (token) {
+            PlusOp, TimesOp -> {
+                while (stack.isNotEmpty()) {
+                    val last = stack.last()
+                    val prec2 = when (last) {
+                        PlusOp -> 1
+                        TimesOp -> 0
+                        OpenParenthesis -> -1
+                        else -> error("invalid stack $stack for token $token")
+                    }
+                    val prec1 = when (token) {
+                        PlusOp -> 1
+                        TimesOp -> 0
+                        else -> error("not gonna happen")
+                    }
+                    if (prec2 >= prec1) {
+                        rpn.add(stack.removeLast())
+                    } else break
+                }
+                stack.add(token)
+            }
+            OpenParenthesis -> {
+                stack.add(token)
+            }
+            CloseParenthesis -> {
+                while (stack.last() != OpenParenthesis) rpn.add(stack.removeLast())
+                stack.removeLast()
+            }
+            else -> {
+                rpn.add(token)
+            }
         }
     }
-    tokens[tokens.size - 2] == TimesOp -> splitTokens(tokens, tokens.size - 2, ::groupTokens2)
-    TimesOp in tokens -> {
-        val i = tokens.lastIndexOf(TimesOp)
-        splitTokens(tokens, i, ::groupTokens2)
+    while (stack.isNotEmpty()) rpn.add(stack.removeLast())
+
+    val result = mutableListOf<Node>()
+    rpn.forEach {
+        when (it) {
+            is Digits -> result.add(it.node())
+            is PlusOp -> result.add(Plus(result.removeLast(), result.removeLast()))
+            is TimesOp -> result.add(Times(result.removeLast(), result.removeLast()))
+            else -> error("invalid token $it")
+        }
     }
-    else -> splitTokens(tokens, tokens.size - 2, ::groupTokens2)
+
+    return result.single()
 }
-//    .also { println("${tokens.joinToString("")} = $it") }
 
