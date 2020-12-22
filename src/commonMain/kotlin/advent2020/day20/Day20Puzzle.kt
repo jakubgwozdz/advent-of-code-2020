@@ -1,5 +1,6 @@
 package advent2020.day20
 
+import advent2020.ProgressLogger
 import advent2020.utils.groups
 
 enum class Edge { top, right, bottom, left }
@@ -49,8 +50,16 @@ data class Tile(val id: Long, val lines: List<String>) {
     }
 }
 
-fun part1(input: String): String {
+interface Day20ProgressLogger : ProgressLogger {
+    suspend fun foundTiles(tiles: Map<Long, Tile>) {}
+}
+
+suspend fun part1(input: String, logger: ProgressLogger = object : Day20ProgressLogger {}): String {
+    logger as Day20ProgressLogger
+
     val tiles = tiles(input)
+
+    logger.foundTiles(tiles)
 
     val matches = matches(tiles)
 
