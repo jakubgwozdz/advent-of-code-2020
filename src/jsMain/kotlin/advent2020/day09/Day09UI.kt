@@ -29,7 +29,7 @@ import org.w3c.dom.css.CSSStyleRule
 import org.w3c.dom.css.CSSStyleSheet
 
 val day09puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
-val day09puzzleInfo = PuzzleInfo("day09", "Encoding Error (VISUAL)", 9, 2020)
+val day09puzzleInfo = PuzzleInfo("day09", "Encoding Error", 9, 2020, animation = true)
 
 @JsExport
 fun createUI() {

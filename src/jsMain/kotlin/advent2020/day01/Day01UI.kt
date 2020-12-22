@@ -15,7 +15,7 @@ import kotlinx.html.TagConsumer
 import org.w3c.dom.HTMLElement
 
 val day01puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
-val day01puzzleInfo = PuzzleInfo("day01", "Report Repair (Logs)", 1, 2020)
+val day01puzzleInfo = PuzzleInfo("day01", "Report Repair", 1, 2020, logs = true)
 
 @JsExport
 fun createUI() {

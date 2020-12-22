@@ -10,7 +10,7 @@ import kotlinx.html.style
 import kotlinx.html.unsafe
 
 val day07puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
-val day07puzzleInfo = PuzzleInfo("day07", "Handy Haversacks (Visual)", 7, 2020)
+val day07puzzleInfo = PuzzleInfo("day07", "Handy Haversacks", 7, 2020, animation = true)
 
 @JsExport
 fun createUI() {

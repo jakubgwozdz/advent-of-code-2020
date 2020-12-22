@@ -20,7 +20,7 @@ import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
 
 val day05puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
-val day05puzzleInfo = PuzzleInfo("day05", "Binary Boarding (Visual)", 5, 2020)
+val day05puzzleInfo = PuzzleInfo("day05", "Binary Boarding", 5, 2020, animation = true)
 
 @JsExport
 fun createUI() {

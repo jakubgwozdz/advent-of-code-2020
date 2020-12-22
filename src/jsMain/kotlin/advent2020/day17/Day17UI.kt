@@ -14,7 +14,7 @@ val day17puzzleInfo = PuzzleInfo("day17", "Conway Cubes", 17, 2020)
 @JsExport
 fun createUI() {
 
-    createHeader(day17puzzleInfo, day17puzzleContext, readOnly = true)
+    createHeader(day17puzzleInfo, day17puzzleContext)
 
     taskSection {
         title = "Part 1"

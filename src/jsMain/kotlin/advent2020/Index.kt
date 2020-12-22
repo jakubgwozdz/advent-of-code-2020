@@ -11,11 +11,22 @@ import kotlinx.html.js.i
 import kotlinx.html.js.nav
 import kotlinx.html.js.p
 import kotlinx.html.js.section
+import kotlinx.html.js.span
 import kotlinx.html.js.strong
+import kotlinx.html.js.style
 import kotlinx.html.js.title
+import kotlinx.html.unsafe
 import org.w3c.dom.HTMLElement
 
-data class PuzzleInfo(val path: String, val title: String, val day: Int, val year: Int = 2020)
+data class PuzzleInfo(
+    val path: String,
+    val title: String,
+    val day: Int,
+    val year: Int = 2020,
+    val logs: Boolean = false,
+    val animation: Boolean = false,
+    val readOnly: Boolean = false
+)
 
 val knownTasks by lazy {
     listOf(
@@ -49,7 +60,43 @@ fun createIndex() {
     document.head!!.append {
         title { +"Advent of Code 2020" }
     }
+
+    val css = """
+        .visual-logs,.visual-animation,.input-readonly {
+          margin-left: 1rem;
+          padding: 0.2rem;
+          font-variant: small-caps;
+          font-size: x-small;
+          vertical-align: top;
+
+        }
+        
+        .visual-logs {
+          background-color: darkolivegreen;
+          color: yellowgreen;
+          border: 1px solid yellowgreen;
+        }
+        
+        .visual-animation {
+          background-color: slateblue;
+          color: gold;
+          border: 1px solid gold;
+        }
+        
+        .input-readonly {
+          background-color: dimgray;
+          color: lightgray;
+          border: 1px solid dimgray;
+        }
+        
+    """.trimIndent()
+
     document.body!!.append {
+        style {
+            unsafe {
+                raw(css)
+            }
+        }
         nav("navbar") {
             div("container") {
                 div("navbar-brand") {
@@ -83,5 +130,14 @@ fun createIndex() {
 fun TagConsumer<HTMLElement>.dayLink(info: PuzzleInfo) {
     p("subtitle is-5") {
         a(info.path) { +"Day ${info.day}: ${info.title}" }
+        if (info.logs) {
+            span("visual-logs") { +"Logs" }
+        }
+        if (info.animation) {
+            span("visual-animation") { +"Animation" }
+        }
+        if (info.readOnly) {
+            span("input-readonly") { +"Own Input Disabled" }
+        }
     }
 }

@@ -24,9 +24,9 @@ import org.w3c.dom.ScrollIntoViewOptions
 import org.w3c.dom.ScrollLogicalPosition
 
 
-fun createHeader(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext, readOnly: Boolean = false) {
+fun createHeader(puzzleInfo: PuzzleInfo, puzzleContext: PuzzleContext) {
     document.head!!.append { title { +"${puzzleInfo.day}: ${puzzleInfo.title}" } }
-    document.body!!.append { createHeader(puzzleInfo, puzzleContext, readOnly) }
+    document.body!!.append { createHeader(puzzleInfo, puzzleContext) }
 }
 
 internal fun Element.myScrollIntoView(behavior: ScrollBehavior = ScrollBehavior.AUTO) =
@@ -35,9 +35,8 @@ internal fun Element.myScrollIntoView(behavior: ScrollBehavior = ScrollBehavior.
 private fun TagConsumer<HTMLElement>.createHeader(
     puzzleInfo: PuzzleInfo,
     puzzleContext: PuzzleContext,
-    readOnly: Boolean = false,
 ) {
-    val inputDataModal = createInputDataModal(puzzleInfo, puzzleContext, readOnly)
+    val inputDataModal = createInputDataModal(puzzleInfo, puzzleContext, puzzleInfo.readOnly)
 
     nav("navbar") {
         div("container") {
@@ -53,7 +52,7 @@ private fun TagConsumer<HTMLElement>.createHeader(
                         p("heading") { +"Input Data" }
                         div("control") {
                             button(classes = "button") {
-                                +if (readOnly) "View" else "Edit"
+                                +if (puzzleInfo.readOnly) "View" else "Edit"
                                 onClickFunction = { inputDataModal.show() }
                             }
                         }
