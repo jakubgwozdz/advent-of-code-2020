@@ -7,8 +7,9 @@ import kotlin.time.TimeSource
 
 actual fun <T> runTest(label: String, block: suspend () -> T): dynamic = GlobalScope.promise {
     val s = TimeSource.Monotonic.markNow()
+    println("test $label: ")
     block()
-        .also { console.log("test $label: ${s.elapsedNow()}; ") }
+        .also { println("${s.elapsedNow()}; ") }
 }
 
 actual fun <T> runTestExpect(exClass: KClass<out Throwable>, label: String, block: suspend () -> T): dynamic =

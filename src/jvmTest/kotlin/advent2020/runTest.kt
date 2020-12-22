@@ -6,8 +6,9 @@ import kotlin.time.TimeSource
 
 actual fun <T> runTest(label: String, block: suspend () -> T): T = runBlocking {
     val s = TimeSource.Monotonic.markNow()
+    println("test $label: ")
     block()
-        .also { println("test $label: ${s.elapsedNow()}") }
+        .also { println("${s.elapsedNow()}; ") }
 }
 
 actual fun <T> runTestExpect(exClass: KClass<out Throwable>, label: String, block: suspend () -> T): Unit = try {

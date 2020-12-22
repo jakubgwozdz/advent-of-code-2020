@@ -10,7 +10,10 @@ fun part1(input: String): String {
 
 fun part2(input: String): String {
     val (p1, p2) = decks(input)
+    games = 0
+    checks = 0
     recursiveCombat(p1, p2)
+    println("; games $games checks $checks; ")
     return score(p1, p2).toString()
 }
 
@@ -39,9 +42,14 @@ fun combat(p1: MutableList<Int>, p2: MutableList<Int>) {
     }
 }
 
+var games = 0L
+var checks = 0L
+
 fun recursiveCombat(p1: MutableList<Int>, p2: MutableList<Int>): Int {
+    games++
     val memory = mutableSetOf<Pair<List<Int>, List<Int>>>()
     while (p1.isNotEmpty() && p2.isNotEmpty()) {
+        checks++
         val state = p1.toList() to p2.toList()
         if (state in memory) return 1
         memory += state
