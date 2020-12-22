@@ -47,7 +47,7 @@ var checks = 0L
 
 fun recursiveCombat(p1: MutableList<Int>, p2: MutableList<Int>): Int {
     games++
-    val memory = mutableSetOf<Pair<List<Int>, List<Int>>>()
+    val memory = HashSet<Pair<List<Int>, List<Int>>>()
     while (p1.isNotEmpty() && p2.isNotEmpty()) {
         checks++
         val state = p1.toList() to p2.toList()
