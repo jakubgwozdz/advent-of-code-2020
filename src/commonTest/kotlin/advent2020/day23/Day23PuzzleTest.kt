@@ -26,6 +26,14 @@ class Day23PuzzleTest {
     }
 
     @Test
+    fun test50cups1000times() = runTest("50 cups 1000 times") {
+        val cups = game("""389125467""", 50, 1000)
+
+        val actual = part2resultFormat(cups)
+        assertEquals("2070", actual)
+    }
+
+    @Test
     fun jakubgwozdzPart1() = runTest {
         val actual = part1(myPuzzleInput)
         assertEquals("49576328", actual)
