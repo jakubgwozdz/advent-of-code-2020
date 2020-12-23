@@ -27,35 +27,63 @@ fun part2resultFormat(cups: IntArray): String {
     return result
 }
 
-fun game(input: String, noOfCups: Int = input.length, times: Int): IntArray {
+class Node(val cup: Int) {
+    lateinit var next: Node
+}
+
+class Circle(input: String, val noOfCups: Int) {
     val cups = IntArray(noOfCups) { if (it < input.length) "${input[it]}".toInt() else it + 1 }
     val cup123 = IntArray(3)
+    var currentIdx = 0
+    operator fun get(i: Int) = cups[pos(i + currentIdx)]
+
+    private fun pos(i: Int) = (i % noOfCups).let { if (it < 0) noOfCups + it else it }
+    fun indexOf(cup: Int): Int = cups.indexOf(cup)
+
+    fun round(destIdx: Int) {
+        val current = cups[currentIdx]
+        cups.copyInto(cup123, 0, 1, 4)
+        cups.copyInto(cups, 0, 4, destIdx + 1)
+        cup123.copyInto(cups, destIdx - 3)
+        cups.copyInto(cups, destIdx, destIdx + 1)
+        cups[cups.size - 1] = current
+    }
+
+    fun dest(): Int {
+        val current = cups[currentIdx]
+
+        var destination = current - 1
+        if (destination == 0) destination = noOfCups
+        while (destination == cups[currentIdx + 1] || destination == cups[currentIdx + 2] || destination == cups[currentIdx + 3]) {
+            destination--
+            if (destination == 0) destination = noOfCups
+        }
+        return destination
+
+    }
+
+    override fun toString() = cups.joinToString(" ", "[", "]", limit = 100) { "$it".padStart(2) }
+}
+
+fun game(input: String, noOfCups: Int = input.length, times: Int): IntArray {
+    val circle = Circle(input, noOfCups)
 
     val timer = Monotonic.markNow()
     var nextPrint = 10.seconds
 
     repeat(times) { move ->
-        val current = cups[0]
+        val destination = circle.dest()
+        val index = circle.indexOf(destination)
+        println("${"$move".padStart(3)}: $circle $destination $index")
+        circle.round(index)
 
-        var destination = current - 1
-        while (destination == cups[1] || destination == cups[2] || destination == cups[3] || destination < 1) {
-            destination--
-            if (destination < 1) destination = noOfCups
-        }
-        val index = cups.indexOf(destination)
-        println("${"$move".padStart(3)}: ${cups.joinToString(" ", "[", "]") { "$it".padStart(2) }}")
-        cups.copyInto(cup123, 0, 1, 4)
-        cups.copyInto(cups, 0, 4, index + 1)
-        cup123.copyInto(cups, index - 3)
-        cups.copyInto(cups, index, index + 1)
-        cups[cups.size - 1] = current
         val elapsed = timer.elapsedNow()
         if (elapsed > nextPrint) {
             println("$elapsed: $move of $times moves (${(move * 100.0 / times).toInt()}%), ETA in ${elapsed * times / (move + 1) - elapsed}")
             nextPrint += 10.seconds
         }
     }
-    println("${"$times".padStart(3)}: ${cups.joinToString(" ", "[", "]") { "$it".padStart(2) }}")
-    return cups
+    println("${"$times".padStart(3)}: $circle")
+    return circle.cups
 }
 
