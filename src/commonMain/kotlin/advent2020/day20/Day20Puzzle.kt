@@ -24,7 +24,7 @@ data class Tile(val id: Long, val lines: List<String>) {
 
     private val edgesCodes = listOf(top, right, bottom, left, topR, rightR, bottomR, leftR)
 
-    fun at(y: Int, x: Int, o: Orientation): Char {
+    fun at(y: Int, x: Int, o: Orientation = Orientation(Edge.top, false)): Char {
         val (topEdge, flip) = o
         return when {
             x !in lines.indices -> ' '
