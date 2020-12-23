@@ -2,7 +2,6 @@ package advent2020.day23
 
 import advent2020.readResource
 import advent2020.runTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -18,7 +17,6 @@ class Day23PuzzleTest {
     }
 
     @Test
-    @Ignore
     fun examplePart2() = runTest {
         val sampleInput = """389125467"""
         val actual = part2(sampleInput)

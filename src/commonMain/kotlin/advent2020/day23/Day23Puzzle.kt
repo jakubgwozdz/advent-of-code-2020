@@ -1,16 +1,16 @@
 package advent2020.day23
 
-import kotlin.time.TimeSource.Monotonic
-import kotlin.time.seconds
-
 fun part1(input: String): String {
     val cups = game(input.trim(), times = 100)
     return part1resultFormat(cups)
 }
 
-fun part1resultFormat(cups: IntArray): String {
-    val indexOf1 = cups.indexOf(1)
-    return (cups.drop(indexOf1 + 1) + cups.take(indexOf1)).joinToString("")
+fun part1resultFormat(circle: Circle) = buildString {
+    var n = circle.cups[1].next
+    while (n.id != 1) {
+        append(n.id)
+        n = n.next
+    }
 }
 
 fun part2(input: String): String {
@@ -18,72 +18,88 @@ fun part2(input: String): String {
     return part2resultFormat(cups)
 }
 
-fun part2resultFormat(cups: IntArray): String {
-    val indexOf1 = cups.indexOf(1)
-    val first = cups[(indexOf1 + 1) % cups.size]
-    val second = cups[(indexOf1 + 2) % cups.size]
+fun part2resultFormat(circle: Circle): String {
+    val one = circle.cups[1]
+    val first = one.next.id
+    val second = one.next.next.id
     val result = (first.toLong() * second.toLong()).toString()
-    println("$first * $second = $result")
+    println(" $first * $second = $result ")
     return result
 }
 
-class Node(val cup: Int) {
-    lateinit var next: Node
+class Cup(val id: Int) {
+    lateinit var next: Cup
 }
 
 class Circle(input: String, val noOfCups: Int) {
-    val cups = IntArray(noOfCups) { if (it < input.length) "${input[it]}".toInt() else it + 1 }
-    val cup123 = IntArray(3)
-    var currentIdx = 0
-    operator fun get(i: Int) = cups[pos(i + currentIdx)]
+    val cups = Array(noOfCups + 1) { Cup(it) }.toList() // ignore idx 0
+    var current: Cup
 
-    private fun pos(i: Int) = (i % noOfCups).let { if (it < 0) noOfCups + it else it }
-    fun indexOf(cup: Int): Int = cups.indexOf(cup)
+    init {
 
-    fun round(destIdx: Int) {
-        val current = cups[currentIdx]
-        cups.copyInto(cup123, 0, 1, 4)
-        cups.copyInto(cups, 0, 4, destIdx + 1)
-        cup123.copyInto(cups, destIdx - 3)
-        cups.copyInto(cups, destIdx, destIdx + 1)
-        cups[cups.size - 1] = current
-    }
-
-    fun dest(): Int {
-        val current = cups[currentIdx]
-
-        var destination = current - 1
-        if (destination == 0) destination = noOfCups
-        while (destination == cups[currentIdx + 1] || destination == cups[currentIdx + 2] || destination == cups[currentIdx + 3]) {
-            destination--
-            if (destination == 0) destination = noOfCups
+        repeat(input.length - 1) {
+            val c = "${input[it]}".toInt()
+            val n = "${input[it + 1]}".toInt()
+            cups[c].next = cups[n]
         }
-        return destination
 
+        val lastFromInput = "${input.last()}".toInt()
+        val firstFromInput = "${input.first()}".toInt()
+        cups[lastFromInput].next = cups[firstFromInput]
+
+        if (noOfCups > input.length) {
+            cups[lastFromInput].next = cups[input.length + 1]
+            (input.length + 1 until noOfCups).forEach {
+                cups[it].next = cups[it + 1]
+            }
+
+            cups[noOfCups].next = cups[firstFromInput]
+        }
+
+        current = cups["${input[0]}".toInt()]
     }
 
-    override fun toString() = cups.joinToString(" ", "[", "]", limit = 100) { "$it".padStart(2) }
+    fun makeMove() {
+        var destId = current.id - 1
+        if (destId == 0) destId = noOfCups
+        while (destId == current.next.id || destId == current.next.next.id || destId == current.next.next.next.id) {
+            destId--
+            if (destId == 0) destId = noOfCups
+        }
+
+        val dest = cups[destId]
+
+        val currentPlus1 = current.next
+        val currentPlus3 = current.next.next.next
+        val currentPlus4 = current.next.next.next.next
+        val destPlus1 = dest.next
+
+        dest.next = currentPlus1
+        current.next = currentPlus4
+        currentPlus3.next = destPlus1
+
+        current = current.next
+    }
+
 }
 
-fun game(input: String, noOfCups: Int = input.length, times: Int): IntArray {
+fun game(input: String, noOfCups: Int = input.length, times: Int): Circle {
     val circle = Circle(input, noOfCups)
+    repeat(times) { circle.makeMove() }
+    return circle
+}
 
-    val timer = Monotonic.markNow()
-    var nextPrint = 10.seconds
+// UNUSED
 
-    repeat(times) { move ->
-        val destination = circle.dest()
-        val index = circle.indexOf(destination)
-        println("${"$move".padStart(3)}: $circle $destination $index")
-        circle.round(index)
-
-        val elapsed = timer.elapsedNow()
-        if (elapsed > nextPrint) {
-            println("$elapsed: $move of $times moves (${(move * 100.0 / times).toInt()}%), ETA in ${elapsed * times / (move + 1) - elapsed}")
-            nextPrint += 10.seconds
-        }
+fun Circle.format() = buildString(10000) {
+    var c = current
+    append("[")
+    repeat(noOfCups.coerceAtMost(52)) {
+        append(c.id)
+        if (it < noOfCups - 1) append(" ")
+        c = c.next
     }
-    println("${"$times".padStart(3)}: $circle")
-    return circle.cups
+    if (noOfCups > 52) append("...")
+    append("]")
 }
 
