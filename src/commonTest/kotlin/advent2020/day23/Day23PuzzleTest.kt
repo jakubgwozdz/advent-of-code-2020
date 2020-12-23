@@ -25,9 +25,8 @@ class Day23PuzzleTest {
 
     @Test
     fun test50cups1000times() = runTest("50 cups 1000 times") {
-        val cups = game("""389125467""", 50, 1000)
-
-        val actual = part2resultFormat(cups)
+        val cups = Circle("""389125467""", noOfCups = 50).apply { makeNMoves(times = 1000) }
+        val actual = part2formatAnswer(cups)
         assertEquals("2070", actual)
     }
 

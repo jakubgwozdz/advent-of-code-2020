@@ -1,11 +1,12 @@
 package advent2020.day23
 
 fun part1(input: String): String {
-    val cups = game(input.trim(), times = 100)
-    return part1resultFormat(cups)
+    val circle = Circle(input.trim())
+    circle.makeNMoves(times = 100)
+    return part1formatAnswer(circle)
 }
 
-fun part1resultFormat(circle: Circle) = buildString {
+fun part1formatAnswer(circle: Circle) = buildString {
     var n = circle.cups[1].next
     while (n.id != 1) {
         append(n.id)
@@ -14,11 +15,12 @@ fun part1resultFormat(circle: Circle) = buildString {
 }
 
 fun part2(input: String): String {
-    val cups = game(input.trim(), noOfCups = 1000000, times = 10000000)
-    return part2resultFormat(cups)
+    val circle = Circle(input.trim(), noOfCups = 1000000)
+    circle.makeNMoves(times = 10000000)
+    return part2formatAnswer(circle)
 }
 
-fun part2resultFormat(circle: Circle): String {
+fun part2formatAnswer(circle: Circle): String {
     val one = circle.cups[1]
     val first = one.next.id
     val second = one.next.next.id
@@ -31,8 +33,8 @@ class Cup(val id: Int) {
     lateinit var next: Cup
 }
 
-class Circle(input: String, val noOfCups: Int) {
-    val cups = Array(noOfCups + 1) { Cup(it) }.toList() // ignore idx 0
+class Circle(input: String, val noOfCups: Int = input.length) {
+    val cups = Array(noOfCups + 1) { Cup(it) }.toList() // ignore idx 0, keep for readability
     var current: Cup
 
     init {
@@ -56,50 +58,48 @@ class Circle(input: String, val noOfCups: Int) {
             cups[noOfCups].next = cups[firstFromInput]
         }
 
-        current = cups["${input[0]}".toInt()]
+        current = cups[firstFromInput]
     }
 
     fun makeMove() {
-        var destId = current.id - 1
+
+        val c0 = current
+        val c1 = c0.next
+        val c2 = c1.next
+        val c3 = c2.next
+        val c4 = c3.next
+
+        var destId = c0.id - 1
         if (destId == 0) destId = noOfCups
-        while (destId == current.next.id || destId == current.next.next.id || destId == current.next.next.next.id) {
+        while (destId == c1.id || destId == c2.id || destId == c3.id) {
             destId--
             if (destId == 0) destId = noOfCups
         }
 
-        val dest = cups[destId]
+        val d0 = cups[destId]
+        val d1 = d0.next
 
-        val currentPlus1 = current.next
-        val currentPlus3 = current.next.next.next
-        val currentPlus4 = current.next.next.next.next
-        val destPlus1 = dest.next
+        d0.next = c1
+        c3.next = d1
+        c0.next = c4
 
-        dest.next = currentPlus1
-        current.next = currentPlus4
-        currentPlus3.next = destPlus1
-
-        current = current.next
+        current = c4
     }
 
-}
-
-fun game(input: String, noOfCups: Int = input.length, times: Int): Circle {
-    val circle = Circle(input, noOfCups)
-    repeat(times) { circle.makeMove() }
-    return circle
+    fun makeNMoves(times: Int) = repeat(times) { makeMove() }
 }
 
 // UNUSED
-
-fun Circle.format() = buildString(10000) {
-    var c = current
-    append("[")
-    repeat(noOfCups.coerceAtMost(52)) {
-        append(c.id)
-        if (it < noOfCups - 1) append(" ")
-        c = c.next
-    }
-    if (noOfCups > 52) append("...")
-    append("]")
-}
-
+//
+//fun Circle.format() = buildString(10000) {
+//    var c = current
+//    append("[")
+//    repeat(noOfCups.coerceAtMost(52)) {
+//        append(c.id)
+//        if (it < noOfCups - 1) append(" ")
+//        c = c.next
+//    }
+//    if (noOfCups > 52) append("...")
+//    append("]")
+//}
+//
