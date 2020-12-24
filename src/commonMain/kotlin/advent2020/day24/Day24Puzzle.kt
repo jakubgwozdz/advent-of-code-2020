@@ -48,25 +48,10 @@ fun part2(input: String): String {
     repeat(100) {
         tiles = (minY - 1..maxY + 1)
             .flatMap { y ->
-                val rowEven = y % 2 == 0
-                val startEven = minX % 2 == 0
-                val endEven = maxX % 2 == 0
-                val range = if (rowEven) {
-                    if (startEven) {
-                        if (endEven) minX - 2..maxX + 2 step 2
-                        else minX - 2..maxX + 1 step 2
-                    } else {
-                        if (endEven) minX - 1..maxX + 2 step 2
-                        else minX - 1..maxX + 1 step 2
-                    }
+                val range = if ((y % 2 == 0) == (minX % 2 == 0)) {
+                    minX - 2..maxX + 2 step 2
                 } else {
-                    if (startEven) {
-                        if (endEven) minX - 1..maxX + 1 step 2
-                        else minX - 1..maxX + 2 step 2
-                    } else {
-                        if (endEven) minX - 2..maxX + 1 step 2
-                        else minX - 2..maxX + 2 step 2
-                    }
+                    minX - 1..maxX + 2 step 2
                 }
                 range.map { x -> Position(x, y) }
             }
