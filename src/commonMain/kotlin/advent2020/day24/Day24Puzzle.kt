@@ -1,5 +1,8 @@
 package advent2020.day24
 
+import kotlin.math.max
+import kotlin.math.min
+
 enum class Vector(val dx: Int, val dy: Int) {
     E(2, 0),
     W(-2, 0),
@@ -12,6 +15,7 @@ enum class Vector(val dx: Int, val dy: Int) {
 
 data class Position(val x: Int, val y: Int) {
     operator fun plus(v: Vector) = Position(x + v.dx, y + v.dy)
+    override fun toString() = "($x,$y)"
 }
 
 
@@ -29,9 +33,57 @@ fun part2(input: String): String {
         .map { line -> tile(line) }
         .fold(emptySet<Position>()) { acc, tile -> if (tile in acc) acc - tile else acc + tile }
 
+    var minX = 0
+    var maxX = 0
+    var minY = 0
+    var maxY = 0
+
+    tiles.forEach { (x, y) ->
+        minX = min(minX, x)
+        maxX = max(maxX, x)
+        minY = min(minY, y)
+        maxY = max(maxY, y)
+    }
+
     repeat(100) {
+        tiles = (minY - 1..maxY + 1)
+            .flatMap { y ->
+                val rowEven = y % 2 == 0
+                val startEven = minX % 2 == 0
+                val endEven = maxX % 2 == 0
+                val range = if (rowEven) {
+                    if (startEven) {
+                        if (endEven) minX - 2..maxX + 2 step 2
+                        else minX - 2..maxX + 1 step 2
+                    } else {
+                        if (endEven) minX - 1..maxX + 2 step 2
+                        else minX - 1..maxX + 1 step 2
+                    }
+                } else {
+                    if (startEven) {
+                        if (endEven) minX - 1..maxX + 1 step 2
+                        else minX - 1..maxX + 2 step 2
+                    } else {
+                        if (endEven) minX - 2..maxX + 1 step 2
+                        else minX - 2..maxX + 2 step 2
+                    }
+                }
+                range.map { x -> Position(x, y) }
+            }
+            .filter { tile ->
+                val adjacent = Vector.values().filter { s -> tile + s in tiles }.size
+                if (tile in tiles) adjacent == 1 || adjacent == 2 else adjacent == 2
+            }
+            .onEach { (x, y) ->
+                minX = min(minX, x)
+                maxX = max(maxX, x)
+                minY = min(minY, y)
+                maxY = max(maxY, y)
+            }
+            .toSet()
 
     }
+    println(" Day 100: ${tiles.size} ")
 
     return tiles.size.toString()
 }

@@ -2,7 +2,6 @@ package advent2020.day24
 
 import advent2020.readResource
 import advent2020.runTest
-import advent2020.runTestExpect
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -39,24 +38,43 @@ class Day24PuzzleTest {
     }
 
     @Test
-    fun examplePart2() = runTestExpect(NotImplementedError::class) {
-        val sampleInput = """"""
+    fun examplePart2() = runTest {
+        val sampleInput = """
+            sesenwnenenewseeswwswswwnenewsewsw
+            neeenesenwnwwswnenewnwwsewnenwseswesw
+            seswneswswsenwwnwse
+            nwnwneseeswswnenewneswwnewseswneseene
+            swweswneswnenwsewnwneneseenw
+            eesenwseswswnenwswnwnwsewwnwsene
+            sewnenenenesenwsewnenwwwse
+            wenwwweseeeweswwwnwwe
+            wsweesenenewnwwnwsenewsenwwsesesenwne
+            neeswseenwwswnwswswnw
+            nenwswwsewswnenenewsenwsenwnesesenew
+            enewnwewneswsewnwswenweswnenwsenwsw
+            sweneswneswneneenwnewenewwneswswnese
+            swwesenesewenwneswnwwneseswwne
+            enesenwswwswneneswsenwnewswseenwsese
+            wnwnesenesenenwwnenwsewesewsesesew
+            nenewswnwewswnenesenwnesewesw
+            eneswnwswnwsenenwnwnwwseeswneewsenese
+            neswnwewnwnwseenwseesewsenwsweewe
+            wseweeenwnesenwwwswnew
+            """.trimIndent()
         val actual = part2(sampleInput)
-        assertEquals("", actual)
+        assertEquals("2208", actual)
     }
 
     @Test
     fun jakubgwozdzPart1() = runTest {
-//    fun jakubgwozdzPart1() = runTestExpect(NotImplementedError::class) {
         val actual = part1(myPuzzleInput)
         assertEquals("469", actual)
     }
 
     @Test
-//    fun jakubgwozdzPart2() = runTest {
-    fun jakubgwozdzPart2() = runTestExpect(NotImplementedError::class) {
+    fun jakubgwozdzPart2() = runTest {
         val actual = part2(myPuzzleInput)
-        assertEquals("", actual)
+        assertEquals("4353", actual)
     }
 
 }
