@@ -10,7 +10,7 @@ fun part1(input: String): String {
 }
 
 fun calcEnc(cardPK: Long, doorPK: Long): Long {
-    val m = 20201227
+    val m = 20201227L
     var acc = 1L
     var loopSize = 0L
     while (true) {
@@ -21,17 +21,15 @@ fun calcEnc(cardPK: Long, doorPK: Long): Long {
     }
 }
 
-fun modPow(base: Long, exp: Long, m: Int): Long {
-    // using property (A * B) % C = (A % C * B % C) % C
+// using property (A * B) % C = (A % C * B % C) % C
+fun modPow(base: Long, exp: Long, m: Long): Long =
+    exp.toString(2).map { if (it == '1') 1 else 0 }
+        .reversed()
+        .fold(ModPowState(1L, base % m)) { acc, base2digit ->
+            val (prev, pow2mod) = acc
+            val next = if (base2digit == 1) prev * pow2mod % m else prev
+            ModPowState(next, (pow2mod * pow2mod % m))
+        }
+        .result
 
-    // which powers of 2 are used in exponent
-    val binary = exp.toString(2).reversed().mapIndexedNotNull { index, c -> if (c == '1') index else null }
-
-    // precalculate for powers of 2
-    val modPowsOf2 = mutableMapOf<Int, Long>()
-    modPowsOf2[0] = base % m
-    (1..binary.maxOrNull()!!).forEach { modPowsOf2[it] = (modPowsOf2[it - 1]!! * modPowsOf2[it - 1]!!) % m }
-
-    return binary.map { modPowsOf2[it]!! }
-        .fold(1L) { acc, l -> (acc % m) * (l % m) } % m
-}
+data class ModPowState(val result: Long, var pow2mod: Long)
