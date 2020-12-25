@@ -2,8 +2,6 @@ package advent2020.day25
 
 import advent2020.readResource
 import advent2020.runTest
-import advent2020.runTestExpect
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -22,24 +20,10 @@ class Day25PuzzleTest {
     }
 
     @Test
-    fun examplePart2() = runTestExpect(NotImplementedError::class) {
-        val sampleInput = """"""
-        val actual = part2(sampleInput)
-        assertEquals("", actual)
-    }
-
-    @Test
-    @Ignore
+//    @Ignore
     fun jakubgwozdzPart1() = runTest {
         val actual = part1(myPuzzleInput)
-        assertEquals("", actual)
-    }
-
-    @Test
-//    fun jakubgwozdzPart2() = runTest {
-    fun jakubgwozdzPart2() = runTestExpect(NotImplementedError::class) {
-        val actual = part2(myPuzzleInput)
-        assertEquals("", actual)
+        assertEquals("17673381", actual)
     }
 
 }
