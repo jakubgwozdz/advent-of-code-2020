@@ -1,5 +1,6 @@
 package advent2020
 
+import advent2020.day20.Edge
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel

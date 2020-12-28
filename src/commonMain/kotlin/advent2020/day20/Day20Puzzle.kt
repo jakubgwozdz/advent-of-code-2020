@@ -52,6 +52,7 @@ data class Tile(val id: Long, val lines: List<String>) {
 
 interface Day20ProgressLogger : ProgressLogger {
     suspend fun foundTiles(tiles: Map<Long, Tile>) {}
+    suspend fun foundMatch(id1: Long, edge: Edge, id2: Long) {}
 }
 
 suspend fun part1(input: String, logger: ProgressLogger = object : Day20ProgressLogger {}): String {
@@ -61,7 +62,7 @@ suspend fun part1(input: String, logger: ProgressLogger = object : Day20Progress
 
     logger.foundTiles(tiles)
 
-    val matches = matches(tiles)
+    val matches = matches(tiles, logger)
 
     val result = matches.filterValues { it.size == 2 }
         .keys.fold(1L) { a, i -> a * i }
@@ -69,10 +70,10 @@ suspend fun part1(input: String, logger: ProgressLogger = object : Day20Progress
     return result.toString()
 }
 
-private fun matches(tiles: Map<Long, Tile>) = tiles.map { (id1, t1) ->
+private suspend fun matches(tiles: Map<Long, Tile>, logger: Day20ProgressLogger) = tiles.map { (id1, t1) ->
     id1 to tiles
         .filter { (id2, _) -> id1 != id2 }
-        .map { (id2, t2) -> t1.match(t2)?.let { it to id2 } }
+        .map { (id2, t2) -> t1.match(t2)?.also { logger.foundMatch(id1, it, id2) }?.let { it to id2 }}
         .filterNotNull()
         .toMap()
 }.toMap()
@@ -85,9 +86,14 @@ private fun tiles(input: String) = input.trim().lineSequence()
         Tile(id, it.drop(1))
     }.toList().associateBy { it.id }
 
-fun part2(input: String): String {
+suspend fun part2(input: String, logger: ProgressLogger = object : Day20ProgressLogger {}): String {
+    logger as Day20ProgressLogger
+
     val tiles = tiles(input)
-    val matches = matches(tiles)
+
+    logger.foundTiles(tiles)
+
+    val matches = matches(tiles, logger)
 
     val byNeighbours = matches.entries.groupBy { (_, m) -> m.size }
         .mapValues { (_, v) -> v.map { it.key } }
