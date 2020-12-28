@@ -6,6 +6,7 @@ import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
+import advent2020.day20.Edge.*
 import advent2020.readResourceInCurrentPackage
 import advent2020.taskSection
 import kotlinx.browser.document
@@ -17,6 +18,7 @@ import org.w3c.dom.DOMMatrix
 import org.w3c.dom.DOMPoint
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
+import kotlin.math.PI
 
 val day20puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
 val day20puzzleInfo = PuzzleInfo("day20", "Jurassic Jigsaw", 20, 2020)
@@ -26,7 +28,7 @@ fun createUI() {
 
     createHeader(day20puzzleInfo, day20puzzleContext)
 
-    day20part1Section {
+    day20Section {
         title = "Part 1"
         puzzleContext = day20puzzleContext
         task = ::part1
@@ -63,13 +65,13 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
     override suspend fun starting() {
         super<GenericTaskSection>.starting()
         tiles.clear()
-        shouldUpdate = true
+        markToRedraw()
     }
 
     override suspend fun success(result: String) {
         super<GenericTaskSection>.success(result)
         lastAdded = null
-        shouldUpdate = true
+        markToRedraw()
     }
 
     override suspend fun foundTiles(tiles: Map<Long, Tile>) {
@@ -80,14 +82,14 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
             index++
             this.tiles[tile.id] = TileInfo(tile, r, c)
         }
-        shouldUpdate = true
+        markToRedraw()
         delayIfChecked(16)
     }
 
     override suspend fun foundMatch(id1: Long, edge: Edge, id2: Long) {
         tiles[id1] = tiles[id1]!!.run { copy(matches = matches + (edge to id2)) }
         lastAdded = tiles[id1]
-        shouldUpdate = true
+        markToRedraw()
         delayIfChecked(16)
     }
 
@@ -95,81 +97,98 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
         const val border = "rgb(200,200,255)"
         const val background = "rgb(75, 101, 171)"
         const val tileBg = "rgb(34, 85, 221)"
-        const val text = "rgb(255,255,255)"
+        const val text = "rgb(255, 255, 255)"
         const val imagePixel = "rgb(221, 238, 255)"
         const val jigsawPixel = "rgb(91, 176, 121)"
-        const val connection = "rgb(255,0,0)"
+        const val jigsawPixelNoMatch = "rgb(0, 0, 0)"
+        const val connection = "rgb(255, 0, 0)"
     }
 
     var lines = 0
 
-    private fun flush() = canvas.getContext("2d").let { ctx ->
-        ctx as CanvasRenderingContext2D
-        val w = ctx.canvas.parentElement?.clientWidth!!
-        ctx.canvas.width = w
-        ctx.canvas.height = w
-        ctx.scale(w / 2400.0, w / 2400.0)
+    fun markToRedraw() {
+        shouldUpdate = true
+    }
 
-        ctx.fillStyle = Colors.border
-        ctx.fillRect(0.0, 0.0, 2400.0, 2400.0)
-        ctx.fillStyle = Colors.background
-        ctx.fillRect(4.0, 4.0, 2392.0, 2392.0)
+    private fun flush() {
+        if (shouldUpdate) canvas.getContext("2d").let { ctx ->
+            ctx as CanvasRenderingContext2D
+            val w = ctx.canvas.parentElement?.clientWidth!!
+            ctx.canvas.width = w
+            ctx.canvas.height = w
+            ctx.scale(w / 2400.0, w / 2400.0)
 
-        val mainTransform = ctx.getTransform()
+            ctx.fillStyle = Colors.border
+            ctx.fillRect(0.0, 0.0, 2400.0, 2400.0)
+            ctx.fillStyle = Colors.background
+            ctx.fillRect(4.0, 4.0, 2392.0, 2392.0)
 
-        // connections
-        tiles.forEach { (_, tileInfo) ->
-            ctx.save()
+            val mainTransform = ctx.getTransform()
 
-            if (tileInfo != lastAdded) {
-                ctx.globalAlpha = 0.2
+            // connections
+            tiles.forEach { (_, tileInfo) ->
+                ctx.save()
+                val highlighted = tileInfo == lastAdded
+
+                drawConnections(ctx, tileInfo, if (highlighted) 1.0 else 0.2)
+
+                // go back to original values
+                ctx.restore()
             }
 
-            ctx.strokeStyle = Colors.connection
-            ctx.lineWidth = 5.0
-            val tr1 = tileTransform(tileInfo)
-            tileInfo.matches.forEach { (e, id) ->
-                val other = tiles[id]!!
-                val tr2 = tileTransform(other)
-                val start = DOMPoint(100.0, 100.0).matrixTransform(tr1)
-                val end = DOMPoint(100.0, 100.0).matrixTransform(tr2)
-                ctx.beginPath()
-                ctx.moveTo(start.x, start.y)
-                ctx.lineTo(end.x, end.y)
-                ctx.stroke()
-                if (lines < 100) console.log("${tileInfo.tile.id} [${start.x}, ${start.y}] - ${other.tile.id} [${end.x}, ${end.y}] ")
-                lines++
+            // tiles
+            tiles.forEach { (_, tileInfo) ->
+                ctx.save()
+                val highlighted =
+                    tileInfo == lastAdded || lastAdded?.matches?.values?.contains(tileInfo.tile.id) == true || tileInfo.matches.count() == 2
+
+                drawTile(ctx, tileInfo, if (highlighted) 0.9 else 0.3)
+
+                // go back to original values
+                ctx.restore()
             }
 
+            ctx.globalAlpha = 1.0
 
-            // go back to original values
-            ctx.restore()
+        }.also {
+            shouldUpdate = false
         }
+    }
 
-        // tiles
-        tiles.forEach { (_, tileInfo) ->
-            ctx.save()
-            ctx.setTransform(ctx.getTransform().multiply(tileTransform(tileInfo)))
-            drawTile(
-                ctx,
-                tileInfo,
-                if (tileInfo == lastAdded || lastAdded?.matches?.values?.contains(tileInfo.tile.id) == true || tileInfo.matches.count() == 2) 0.9 else 0.3
-            )
-            // go back to original values
-            ctx.restore()
+    private fun drawConnections(ctx: CanvasRenderingContext2D, tileInfo: TileInfo, alpha: Double) {
+        ctx.globalAlpha = alpha
+        ctx.strokeStyle = Colors.connection
+        ctx.lineWidth = 5.0
+        val tr1 = tileTransform(tileInfo)
+        tileInfo.matches.forEach { (e, id) ->
+            val other = tiles[id]!!
+            val tr2 = tileTransform(other)
+            val start = DOMPoint(100.0, 100.0).matrixTransform(tr1)
+            val end = DOMPoint(100.0, 100.0).matrixTransform(tr2)
+            ctx.beginPath()
+            ctx.moveTo(start.x, start.y)
+            ctx.lineTo(end.x, end.y)
+            ctx.stroke()
+            if (lines < 100) console.log("${tileInfo.tile.id} [${start.x}, ${start.y}] - ${other.tile.id} [${end.x}, ${end.y}] ")
+            lines++
         }
+    }
 
-        ctx.globalAlpha = 1.0
-
-    }.also {
-        shouldUpdate = false
+    val borderPixelsCache = mutableMapOf<Int, Collection<Pair<Int, Int>>>()
+    fun borderPixels(size: Int): Collection<Pair<Int, Int>> {
+        return borderPixelsCache.getOrPut(size) {
+            (0 until size)
+                .flatMap { listOf(0 to it, size - 1 to it, it to 0, it to size - 1) }
+                .toSet()
+        }
     }
 
     private fun drawTile(ctx: CanvasRenderingContext2D, tileInfo: TileInfo, alpha: Double) {
+        ctx.setTransform(ctx.getTransform().multiply(tileTransform(tileInfo)))
+
         val tile = tileInfo.tile
 
         val ts = 20.0 // tile size
-
 
         ctx.globalAlpha = alpha
 
@@ -188,9 +207,7 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
 
         ctx.fillStyle = Colors.text
         ctx.font = "30px Lato"
-        ctx.scale(2.0, 1.0)
-        ctx.fillText("${tile.id}", 10.0, -5.0, 30.0)
-        ctx.scale(0.5, 1.0)
+        ctx.fillText("${tile.id}", 10.0, -5.0)
 
         ctx.fillStyle = Colors.imagePixel
         (1..tile.size - 2).forEach { y ->
@@ -200,19 +217,39 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
             }
         }
         // edges
-        ctx.fillStyle = Colors.jigsawPixel
-        (1..tile.size - 2).forEach { y ->
-            if (tile.at(y, 0) == '#')
-                ctx.fillRect(0 * ts, y * ts, ts, ts)
-            if (tile.at(y, tile.size - 1) == '#')
-                ctx.fillRect((tile.size - 1) * ts, y * ts, ts, ts)
+        val hasT = top in tileInfo.matches
+        val hasR = right in tileInfo.matches
+        val hasB = bottom in tileInfo.matches
+        val hasL = left in tileInfo.matches
+
+        borderPixels(tile.size)
+            .filter { (x, y) -> tile.at(y, x) == '#' }
+            .forEach { (x, y) ->
+                if (x == 0 && hasL || x == tile.size - 1 && hasR || y == 0 && hasT || y == tile.size - 1 && hasB)
+                    ctx.fillStyle = Colors.jigsawPixel
+                else
+                    ctx.fillStyle = Colors.jigsawPixelNoMatch
+                ctx.fillRect(x * ts, y * ts, ts, ts)
+            }
+
+
+        ctx.fillStyle = Colors.text
+        ctx.font = "24px Lato"
+        tileInfo.matches.forEach { (edge, id) ->
+            ctx.save()
+            ctx.translate(100.0, 100.0)
+            when (edge) {
+                top -> Unit
+                right -> ctx.rotate(PI / 2)
+                bottom -> ctx.rotate(PI)
+                left -> ctx.rotate(3 * PI / 2)
+            }
+            val v = ctx.measureText("$id").width
+            ctx.fillText("$id", -v / 2, -80.0)
+
+            ctx.restore()
         }
-        (0 until tile.size).forEach { x ->
-            if (tile.at(0, x) == '#')
-                ctx.fillRect(x * ts, 0 * ts, ts, ts)
-            if (tile.at(tile.size - 1, x) == '#')
-                ctx.fillRect(x * ts, (tile.size - 1) * ts, ts, ts)
-        }
+
     }
 
     private fun tileTransform(tileInfo: TileInfo, size: Double = 200.0) = DOMMatrix()
@@ -232,6 +269,7 @@ class Day20Part1SectionBuilder : TaskSectionBuilder() {
     }
 
     override fun constructObject() = Day20Part1Section(genericElements(), canvas)
+        .apply { window.onresize = { this.markToRedraw() } }
 }
 
-fun day20part1Section(op: Day20Part1SectionBuilder.() -> Unit) = Day20Part1SectionBuilder().apply(op)
+fun day20Section(op: Day20Part1SectionBuilder.() -> Unit) = Day20Part1SectionBuilder().apply(op)
