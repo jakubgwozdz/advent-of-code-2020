@@ -4,11 +4,11 @@ import advent2020.GenericTaskSection
 import advent2020.GenericTaskSectionElements
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
+import advent2020.ResultField
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.day20.Edge.*
 import advent2020.readResourceInCurrentPackage
-import advent2020.taskSection
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.html.TagConsumer
@@ -29,17 +29,12 @@ fun createUI() {
     createHeader(day20puzzleInfo, day20puzzleContext)
 
     day20Section {
-        title = "Part 1"
-        puzzleContext = day20puzzleContext
-        task = ::part1
-        delay = true
-    }.buildInBody(document.body!!)
-
-    taskSection {
-        title = "Part 2"
+        title = "Part 1 & 2"
         puzzleContext = day20puzzleContext
         task = ::part2
-    }.buildInBody(document.body!!)
+        delay = true
+        resultHeading = "Part 1"
+    }
 
 }
 
@@ -47,51 +42,125 @@ data class TileInfo(
     val tile: Tile,
     val row: Int,
     val column: Int,
-    val angle: Double = (tile.id % 360 - 180.0),// * PI / 180,
-    val scale: Double = 0.8,
-    val flip: Boolean = false,//tile.id>1500,
-    val matches: Map<Edge, Long> = emptyMap()
+    val angle: Double = (tile.id % 360 - 180.0) / 4,// * PI / 180,
+    val flip: Boolean = false,
+    val matches: Map<Edge, Long> = emptyMap(),
+    val correctPlace: Boolean = false
 )
 
-class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas: HTMLCanvasElement) :
+class Day20Section(
+    genericElements: GenericTaskSectionElements,
+    val canvas: HTMLCanvasElement,
+    val result2Field: ResultField
+) :
     GenericTaskSection(genericElements), Day20ProgressLogger {
 
     private var shouldUpdate = false
+    private var scale = 0.8
+
     var timer: Int? = window.setInterval(::flush, 16)
 
     private val tiles: MutableMap<Long, TileInfo> = mutableMapOf()
-    private var lastAdded: TileInfo? = null
+    private var lastAdded: Long? = null
 
     override suspend fun starting() {
         super<GenericTaskSection>.starting()
+        result2Field.hide()
         tiles.clear()
+        scale = 0.8
+        lastAdded = null
         markToRedraw()
     }
 
     override suspend fun success(result: String) {
         super<GenericTaskSection>.success(result)
+        tiles.values
+            .filter { it.matches.size == 2 }
+            .fold(1L) { acc, tileInfo -> acc * tileInfo.tile.id }
+            .let { resultField.show(it.toString()) }
+        result2Field.show(result)
         lastAdded = null
         markToRedraw()
     }
 
-    override suspend fun foundTiles(tiles: Map<Long, Tile>) {
-        var index = 0
-        tiles.forEach { (id, tile) ->
-            val r = index / 12
-            val c = index % 12
-            index++
-            this.tiles[tile.id] = TileInfo(tile, r, c)
-        }
+    override suspend fun foundTile(tile: Tile) {
+        val index = tiles.size
+        val r = index / 12
+        val c = index % 12
+        this.tiles[tile.id] = TileInfo(tile, r, c)
+        lastAdded = tile.id
         markToRedraw()
-        delayIfChecked(16)
+        delayIfChecked(15)
+    }
+
+    override suspend fun allTilesFound() {
+        lastAdded = null
+        markToRedraw()
+        delayIfChecked(1000)
     }
 
     override suspend fun foundMatch(id1: Long, edge: Edge, id2: Long) {
-        tiles[id1] = tiles[id1]!!.run { copy(matches = matches + (edge to id2)) }
-        lastAdded = tiles[id1]
+        val updated = tiles[id1]!!.run { copy(matches = matches + (edge to id2)) }
+        tiles[id1] = updated
+        if (lastAdded != id1 && tiles[lastAdded]?.matches?.size == 2) {
+            tiles.values
+                .filter { it.matches.size == 2 }
+                .fold(1L) { acc, tileInfo -> acc * tileInfo.tile.id }
+                .let { resultField.show(it.toString()) }
+        }
+        lastAdded = id1
         markToRedraw()
-        delayIfChecked(16)
+        delayIfChecked(15)
     }
+
+    override suspend fun allMatchesFound() {
+        lastAdded = null
+        markToRedraw()
+        delayIfChecked(1000)
+    }
+
+
+    override suspend fun tilePlaced(id: Long, row: Int, col: Int) {
+        tiles[id] = tiles[id]!!.copy(row = row, column = col, correctPlace = true)
+        lastAdded = id
+        markToRedraw()
+        delayIfChecked(15)
+    }
+
+    override suspend fun allTilesPlaced() {
+        lastAdded = null
+        markToRedraw()
+        delayIfChecked(1000)
+    }
+
+    override suspend fun tileRotated(id: Long, orientation: Orientation) {
+        val angle = when (orientation.topEdge) {
+            Top -> 0.0
+            Right -> -90.0
+            Bottom -> 180.0
+            Left -> 90.0
+        }
+        tiles[id] = tiles[id]!!.copy(angle = angle, flip = orientation.flip)
+        lastAdded = id
+        markToRedraw()
+        delayIfChecked(15)
+    }
+
+    override suspend fun allTilesRotated() {
+        lastAdded = null
+        (800..1000).forEach { scale ->
+            this.scale = scale / 1000.0
+            markToRedraw()
+            delayIfChecked(6)
+        }
+        delayIfChecked(500)
+        (1000..1250).forEach { scale ->
+            this.scale = scale / 1000.0
+            markToRedraw()
+            delayIfChecked(6)
+        }
+    }
+
 
     object Colors {
         const val border = "rgb(200,200,255)"
@@ -123,12 +192,10 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
             ctx.fillStyle = Colors.background
             ctx.fillRect(4.0, 4.0, 2392.0, 2392.0)
 
-            val mainTransform = ctx.getTransform()
-
             // connections
-            tiles.forEach { (_, tileInfo) ->
+            tiles.filter { (_, tileInfo) -> !tileInfo.correctPlace }.forEach { (_, tileInfo) ->
                 ctx.save()
-                val highlighted = tileInfo == lastAdded
+                val highlighted = tileInfo.tile.id == lastAdded
 
                 drawConnections(ctx, tileInfo, if (highlighted) 1.0 else 0.2)
 
@@ -137,12 +204,16 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
             }
 
             // tiles
-            tiles.forEach { (_, tileInfo) ->
+            tiles.forEach { (id, tileInfo) ->
                 ctx.save()
-                val highlighted =
-                    tileInfo == lastAdded || lastAdded?.matches?.values?.contains(tileInfo.tile.id) == true || tileInfo.matches.count() == 2
-
-                drawTile(ctx, tileInfo, if (highlighted) 0.9 else 0.3)
+                val alpha = when {
+                    id == lastAdded -> 1.0
+                    tiles[lastAdded]?.matches?.values?.contains(id) == true -> 1.0
+                    tileInfo.matches.count() == 2 -> 0.9
+                    tileInfo.correctPlace -> 0.8
+                    else -> 0.3
+                }
+                drawTile(ctx, tileInfo, alpha)
 
                 // go back to original values
                 ctx.restore()
@@ -190,8 +261,10 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
 
         val ts = 20.0 // tile size
 
-        ctx.globalAlpha = alpha
+        val aFg = (1.0 - alpha) * (scale - 0.8) / (0.45) + alpha
+        val aBg = (-alpha) * (scale - 0.8) / (0.45) + alpha
 
+        ctx.globalAlpha = aBg
         ctx.fillStyle = Colors.border
         ctx.fillRect(-2.0, -2.0, 204.0, 204.0)
         ctx.fillStyle = Colors.tileBg
@@ -209,6 +282,7 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
         ctx.font = "30px Lato"
         ctx.fillText("${tile.id}", 10.0, -5.0)
 
+        ctx.globalAlpha = aFg
         ctx.fillStyle = Colors.imagePixel
         (1..tile.size - 2).forEach { y ->
             (1..tile.size - 2).forEach { x ->
@@ -216,11 +290,13 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
                     ctx.fillRect(x * ts, y * ts, ts, ts)
             }
         }
+
+        ctx.globalAlpha = aBg
         // edges
-        val hasT = top in tileInfo.matches
-        val hasR = right in tileInfo.matches
-        val hasB = bottom in tileInfo.matches
-        val hasL = left in tileInfo.matches
+        val hasT = Top in tileInfo.matches
+        val hasR = Right in tileInfo.matches
+        val hasB = Bottom in tileInfo.matches
+        val hasL = Left in tileInfo.matches
 
         borderPixels(tile.size)
             .filter { (x, y) -> tile.at(y, x) == '#' }
@@ -239,37 +315,47 @@ class Day20Part1Section(genericElements: GenericTaskSectionElements, val canvas:
             ctx.save()
             ctx.translate(100.0, 100.0)
             when (edge) {
-                top -> Unit
-                right -> ctx.rotate(PI / 2)
-                bottom -> ctx.rotate(PI)
-                left -> ctx.rotate(3 * PI / 2)
+                Top -> Unit
+                Right -> ctx.rotate(PI / 2)
+                Bottom -> ctx.rotate(PI)
+                Left -> ctx.rotate(3 * PI / 2)
             }
             val v = ctx.measureText("$id").width
             ctx.fillText("$id", -v / 2, -80.0)
 
             ctx.restore()
         }
-
     }
 
     private fun tileTransform(tileInfo: TileInfo, size: Double = 200.0) = DOMMatrix()
-        .translate(tileInfo.row * size + size / 2, tileInfo.column * size + size / 2)
-        .scale(if (tileInfo.flip) -tileInfo.scale else tileInfo.scale, tileInfo.scale)
+        .translate(tileInfo.column.toDouble() * size, tileInfo.row.toDouble() * size)
+        .translate(size / 2, size / 2)
+        .scale(scale)
         .rotate(tileInfo.angle)
-        .translate(-size / 2, -size / 2.3)
+        .run { if (tileInfo.flip) flipX() else this }
+        .translate(-size / 2, -size / 2)
 
 }
 
 class Day20Part1SectionBuilder : TaskSectionBuilder() {
     lateinit var canvas: HTMLCanvasElement
+    var result2Heading = "Part 2"
+    lateinit var result2Field: ResultField
+
+    override fun createTaskSpecificLevelFields(bodyBuilder: TagConsumer<HTMLElement>) {
+        result2Field = bodyBuilder.createResultField(result2Heading)
+    }
+
     override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) {
         with(bodyBuilder) {
             canvas = canvas { }
         }
     }
 
-    override fun constructObject() = Day20Part1Section(genericElements(), canvas)
+    override fun constructObject() = Day20Section(genericElements(), canvas, result2Field)
         .apply { window.onresize = { this.markToRedraw() } }
 }
 
-fun day20Section(op: Day20Part1SectionBuilder.() -> Unit) = Day20Part1SectionBuilder().apply(op)
+fun day20Section(op: Day20Part1SectionBuilder.() -> Unit) = Day20Part1SectionBuilder()
+    .apply(op)
+    .buildInBody(document.body!!)
