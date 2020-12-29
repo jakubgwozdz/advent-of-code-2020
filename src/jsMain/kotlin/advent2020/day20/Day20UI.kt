@@ -40,12 +40,12 @@ fun createUI() {
 
 data class TileInfo(
     val tile: Tile,
-    val row: Double,
-    val column: Double,
-    val angle: Double = (tile.id % 360 - 180.0) / 4,// * PI / 180,
-    val flip: Double = 1.0,
-    val matches: Map<Edge, Long> = emptyMap(),
-    val correctPlace: Boolean = false
+    var row: Double,
+    var column: Double,
+    var angle: Double = (tile.id % 360 - 180.0) / 4,// * PI / 180,
+    var flip: Double = 1.0,
+    val matches: MutableMap<Edge, Long> = mutableMapOf(),
+    var correctPlace: Boolean = false
 )
 
 class Day20Section(
@@ -57,6 +57,7 @@ class Day20Section(
 
     private var shouldUpdate = false
     private var scale = 0.8
+    private var tileCount = 0
 
     var timer: Int? = window.setInterval(::flush, 16)
 
@@ -69,6 +70,7 @@ class Day20Section(
         tiles.clear()
         scale = 0.8
         lastAdded = null
+        tileCount = 0
         markToRedraw()
     }
 
@@ -84,24 +86,25 @@ class Day20Section(
     }
 
     override suspend fun foundTile(tile: Tile) {
-        val index = tiles.size
-        val r = index / 12
-        val c = index % 12
+        val r = tileCount / 12
+        val c = tileCount % 12
         this.tiles[tile.id] = TileInfo(tile, r.toDouble(), c.toDouble())
         lastAdded = tile.id
+        tileCount++
         markToRedraw()
-        delayIfChecked(15)
+        delayIfChecked(waitTimeForOneTile())
     }
 
     override suspend fun allTilesFound() {
         lastAdded = null
+        tileCount = 0
         markToRedraw()
         delayIfChecked(1000)
     }
 
     override suspend fun foundMatch(id1: Long, edge: Edge, id2: Long) {
-        val updated = tiles[id1]!!.run { copy(matches = matches + (edge to id2)) }
-        tiles[id1] = updated
+        tileCount++
+        tiles[id1]!!.matches += edge to id2
         if (lastAdded != id1 && tiles[lastAdded]?.matches?.size == 2) {
             tiles.values
                 .filter { it.matches.size == 2 }
@@ -110,45 +113,70 @@ class Day20Section(
         }
         lastAdded = id1
         markToRedraw()
-        delayIfChecked(15)
+        delayIfChecked(waitTimeForOneTile())
     }
 
     override suspend fun allMatchesFound() {
         lastAdded = null
+        tileCount = 0
         markToRedraw()
         delayIfChecked(1000)
     }
 
 
     override suspend fun tilePlaced(id: Long, row: Int, col: Int) {
-        val oldInfo = tiles[id]!!
-        tiles[id] = oldInfo.copy(row = row.toDouble(), column = col.toDouble(), correctPlace = true)
         lastAdded = id
-        markToRedraw()
-        delayIfChecked(15)
+        tileCount++
+
+        val newRow = row.toDouble()
+        val newColumn = col.toDouble()
+        val prevTile = tiles.values.singleOrNull { it.row == newRow && it.column == newColumn }
+        val tileInfo = tiles[id]!!
+        val oldRow = tileInfo.row
+        val oldColumn = tileInfo.column
+
+        delayIfChecked(waitTimeForOneTile()) { pct ->
+            tileInfo.row = (newRow - oldRow) * pct + oldRow
+            tileInfo.column = (newColumn - oldColumn) * pct + oldColumn
+            prevTile?.row = (oldRow - newRow) * pct + newRow
+            prevTile?.column = (oldColumn - newColumn) * pct + newColumn
+            markToRedraw()
+        }
+        tileInfo.correctPlace = true
     }
 
     override suspend fun allTilesPlaced() {
         lastAdded = null
+        tileCount = 0
         markToRedraw()
         delayIfChecked(1000)
     }
 
     override suspend fun tileRotated(id: Long, orientation: Orientation) {
-        val angle = when (orientation.topEdge) {
+        tileCount++
+        lastAdded = id
+        val newAngle = when (orientation.topEdge) {
             Top -> 0.0
             Right -> -90.0
             Bottom -> 180.0
             Left -> 90.0
         }
-        tiles[id] = tiles[id]!!.copy(angle = angle, flip = if (orientation.flip) -1.0 else 1.0)
-        lastAdded = id
-        markToRedraw()
-        delayIfChecked(15)
+        val newFlip = if (orientation.flip) -1.0 else 1.0
+        val tileInfo = tiles[id]!!
+        val oldAngle = tileInfo.angle
+        val oldFlip = tileInfo.flip
+        delayIfChecked(waitTimeForOneTile()) { pct ->
+            tileInfo.angle = (newAngle - oldAngle) * pct + oldAngle
+            tileInfo.flip = (newFlip - oldFlip) * pct + oldFlip
+            markToRedraw()
+        }
     }
+
+    private fun waitTimeForOneTile() = 10000 / (tileCount + 10)
 
     override suspend fun allTilesRotated() {
         lastAdded = null
+        tileCount = 0
         (800..1000).forEach { scale ->
             this.scale = scale / 1000.0
             markToRedraw()

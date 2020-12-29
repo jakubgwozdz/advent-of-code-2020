@@ -112,8 +112,8 @@ open class GenericTaskSection(
     val runWithDelay: Boolean get() = delayCheckbox.state
 
     val animation = AnimationTimer()
-    protected suspend fun delayIfChecked(time: Int) {
-        if (runWithDelay) animation.delay(time) else animation.delay(0)
+    protected suspend fun delayIfChecked(time: Int, animStep: (Double) -> Unit = {}) {
+        if (runWithDelay) animation.delay(time, animStep) else animation.delay(0, animStep)
     }
 
     override suspend fun starting() {

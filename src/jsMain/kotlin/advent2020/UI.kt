@@ -99,17 +99,22 @@ class AnimationTimer {
         return time
     }
 
-    suspend fun delay(i: Int): Boolean {
+    /**
+     * @param animStep - operation to call every animationFrame, argument is in (0.0,0.1]
+     */
+    suspend fun delay(i: Int, animStep: (Double) -> Unit = {}): Boolean {
         val startedAt = time
         val updatedWaitTime = i - lastOverkill
         val expectedEndTime = window.performance.now() + updatedWaitTime
         var dt = 0.0
         while (dt < updatedWaitTime) {
             dt += await()
+            if (dt < updatedWaitTime) animStep(dt / updatedWaitTime)
         }
         if (i == 0 && window.performance.now() > time + 50) await()
         else if (i > 0) lastOverkill = window.performance.now() - expectedEndTime
 
+        animStep(1.0)
         return time > startedAt
 
     }
