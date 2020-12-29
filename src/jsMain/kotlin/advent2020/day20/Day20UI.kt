@@ -59,18 +59,23 @@ class Day20Section(
     private var shouldUpdate = false
     private var scale = 0.8
     private var tileCount = 0
+    private var fullImage: Tile? = null
 
     var timer: Int? = window.setInterval(::flush, 16)
+    private fun waitTimeForOneTile() = 1000 / (tileCount / 5 + 10)
 
     private val tiles: MutableMap<Long, TileInfo> = mutableMapOf()
+    private val monsters: MutableSet<Pair<Int, Int>> = mutableSetOf()
     private var lastAdded: Long? = null
 
     override suspend fun starting() {
         super<GenericTaskSection>.starting()
         result2Field.hide()
         tiles.clear()
+        monsters.clear()
         scale = 0.8
         lastAdded = null
+        fullImage = null
         tileCount = 0
         markToRedraw()
     }
@@ -174,7 +179,7 @@ class Day20Section(
         delayIfChecked(1000)
     }
 
-    override suspend fun tileRotated(id: Long, orientation: Orientation) {
+    override suspend fun tileOriented(id: Long, orientation: Orientation) {
         tileCount++
         lastAdded = id
         val newAngle = when (orientation.topEdge) {
@@ -194,24 +199,31 @@ class Day20Section(
         }
     }
 
-    private fun waitTimeForOneTile() = 5000 / (tileCount / 5 + 10)
-
     override suspend fun allTilesRotated() {
         lastAdded = null
         tileCount = 0
-        (800..1000).forEach { scale ->
-            this.scale = scale / 1000.0
+        delayIfChecked(1200) { pct ->
+            this.scale = (1.0 - 0.8) * pct + 0.8
             markToRedraw()
-            delayIfChecked(6)
         }
+
         delayIfChecked(1500)
-        (1000..1250).forEach { scale ->
-            this.scale = scale / 1000.0
+        delayIfChecked(1200) { pct ->
+            this.scale = (1.25 - 1.0) * pct + 1.0
             markToRedraw()
-            delayIfChecked(6)
         }
+
     }
 
+    override suspend fun monsterFound(y: Int, x: Int, o: Orientation, pixels: List<Pair<Int, Int>>) {
+        monsters.addAll(pixels)
+        markToRedraw()
+        delayIfChecked(1000)
+    }
+
+    override suspend fun imageComposed(image: Tile) {
+        fullImage = image
+    }
 
     object Colors {
         const val border = "rgb(200,200,255)"
@@ -219,6 +231,7 @@ class Day20Section(
         const val tileBg = "rgb(34, 85, 221)"
         const val text = "rgb(255, 255, 255)"
         const val imagePixel = "rgb(221, 238, 255)"
+        const val monsterPixel = "rgb(255, 0, 0)"
         const val jigsawPixel = "rgb(255, 176, 121)"
         const val jigsawPixelNoMatch = "rgb(0, 0, 0)"
         const val connection = "rgb(255, 0, 0)"
@@ -241,35 +254,51 @@ class Day20Section(
             ctx.fillStyle = Colors.background
             ctx.fillRect(4.0, 4.0, 2392.0, 2392.0)
 
-            // connections
-            tiles.filter { (_, tileInfo) -> !tileInfo.correctPlace }.forEach { (_, tileInfo) ->
+            val image = fullImage
+            if (image != null) {
                 ctx.save()
-                val highlighted = tileInfo.tile.id == lastAdded
-
-                drawConnections(ctx, tileInfo, if (highlighted) 1.0 else 0.2)
-
-                // go back to original values
-                ctx.restore()
-            }
-
-            // tiles
-            tiles.forEach { (id, tileInfo) ->
-                ctx.save()
-                val alpha = when {
-                    id == lastAdded -> 1.0
-                    tiles[lastAdded]?.matches?.values?.contains(id) == true -> 1.0
-                    tileInfo.matches.count() == 2 -> 0.9
-                    tileInfo.correctPlace -> 0.8
-                    else -> 0.3
+                val ts = 2400.0 / image.lines.size
+                image.lines.indices.forEach { y ->
+                    image.lines[y].indices.forEach { x ->
+                        if (image.lines[y][x] == '#') {
+                            ctx.fillStyle = if (y to x in monsters) Colors.monsterPixel else Colors.imagePixel
+                            ctx.fillRect(x * ts, y * ts, ts, ts)
+                        }
+                    }
                 }
-                drawTile(ctx, tileInfo, alpha)
-
-                // go back to original values
                 ctx.restore()
+            } else {
+
+                // connections
+                tiles.filter { (_, tileInfo) -> !tileInfo.correctPlace }
+                    .forEach { (_, tileInfo) ->
+                        ctx.save()
+                        val highlighted = tileInfo.tile.id == lastAdded
+
+                        drawConnections(ctx, tileInfo, if (highlighted) 1.0 else 0.2)
+
+                        // go back to original values
+                        ctx.restore()
+                    }
+
+                // tiles
+                tiles.forEach { (id, tileInfo) ->
+                    ctx.save()
+                    val alpha = when {
+                        id == lastAdded -> 1.0
+                        tiles[lastAdded]?.matches?.values?.contains(id) == true -> 1.0
+                        tileInfo.matches.count() == 2 -> 0.9
+                        tileInfo.correctPlace -> 0.8
+                        else -> 0.3
+                    }
+                    drawTile(ctx, tileInfo, alpha)
+
+                    // go back to original values
+                    ctx.restore()
+                }
+
+                ctx.globalAlpha = 1.0
             }
-
-            ctx.globalAlpha = 1.0
-
         }.also {
             shouldUpdate = false
         }

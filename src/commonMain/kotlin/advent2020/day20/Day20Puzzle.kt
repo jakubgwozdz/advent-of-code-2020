@@ -7,39 +7,38 @@ import advent2020.utils.groups
 enum class Edge { Top, Right, Bottom, Left }
 data class Orientation(val topEdge: Edge, val flip: Boolean)
 
-fun List<Char>.asInt() = joinToString("") { if (it == '#') "1" else "0" }.toInt(2)
+fun List<Char>.edgeCode() = joinToString("") { if (it == '#') "1" else "0" }.toLong(2)
 
 data class Tile(val id: Long, val lines: List<String>) {
     val size = lines.count()
-    private val top = lines.first().toList().asInt()
-    private val topR = lines.first().toList().reversed().asInt()
+    private val top by lazy { lines.first().toList().edgeCode() }
+    private val topR by lazy { lines.first().toList().reversed().edgeCode() }
 
-    private val right = lines.map { it.last() }.asInt()
-    private val rightR = lines.map { it.last() }.reversed().asInt()
+    private val right by lazy { lines.map { it.last() }.edgeCode() }
+    private val rightR by lazy { lines.map { it.last() }.reversed().edgeCode() }
 
-    private val bottomR = lines.last().toList().asInt()
-    private val bottom = lines.last().toList().reversed().asInt()
+    private val bottomR by lazy { lines.last().toList().edgeCode() }
+    private val bottom by lazy { lines.last().toList().reversed().edgeCode() }
 
-    private val leftR = lines.map { it.first() }.asInt()
-    private val left = lines.map { it.first() }.reversed().asInt()
+    private val leftR by lazy { lines.map { it.first() }.edgeCode() }
+    private val left by lazy { lines.map { it.first() }.reversed().edgeCode() }
 
-    private val edgesCodes = listOf(top, right, bottom, left, topR, rightR, bottomR, leftR)
+    private val edgesCodes by lazy { listOf(top, right, bottom, left, topR, rightR, bottomR, leftR) }
 
     fun at(y: Int, x: Int, o: Orientation = Orientation(Top, false)): Char {
-        val (topEdge, flip) = o
+        val (y1, x1) = orient(y, x, o)
         return when {
-            x !in lines.indices -> ' '
-            y !in lines.indices -> ' '
-            topEdge == Top && !flip -> lines[y][x]
-            topEdge == Top && flip -> lines[y][size - 1 - x]
-            topEdge == Right && flip -> lines[x][y]
-            topEdge == Right && !flip -> lines[x][size - 1 - y]
-            topEdge == Bottom && !flip -> lines[size - 1 - y][size - 1 - x]
-            topEdge == Bottom && flip -> lines[size - 1 - y][x]
-            topEdge == Left && !flip -> lines[size - 1 - x][y]
-            topEdge == Left && flip -> lines[size - 1 - x][size - 1 - y]
-            else -> error("unknown $o")
+            x1 !in lines.indices -> ' '
+            y1 !in lines.indices -> ' '
+            else -> lines[y1][x1]
         }
+    }
+
+    fun orient(y: Int, x: Int, o: Orientation) = when (o.topEdge) {
+        Top -> if (!o.flip) y to x else y to size - 1 - x
+        Right -> if (!o.flip) x to size - 1 - y else x to y
+        Bottom -> if (!o.flip) size - 1 - y to size - 1 - x else size - 1 - y to x
+        Left -> if (!o.flip) size - 1 - x to y else size - 1 - x to size - 1 - y
     }
 
     fun match(o: Tile) = when {
@@ -55,11 +54,13 @@ interface Day20ProgressLogger : ProgressLogger {
     suspend fun foundTile(tile: Tile) {}
     suspend fun foundMatch(id1: Long, edge: Edge, id2: Long) {}
     suspend fun tilePlaced(id: Long, row: Int, col: Int) {}
-    suspend fun tileRotated(id: Long, orientation: Orientation) {}
+    suspend fun tileOriented(id: Long, orientation: Orientation) {}
     suspend fun allTilesFound() {}
     suspend fun allMatchesFound() {}
     suspend fun allTilesPlaced() {}
     suspend fun allTilesRotated() {}
+    suspend fun monsterFound(y: Int, x: Int, o: Orientation, pixels: List<Pair<Int, Int>>) {}
+    suspend fun imageComposed(image: Tile) {}
 }
 
 suspend fun part1(input: String, logger: ProgressLogger = object : Day20ProgressLogger {}): String {
@@ -105,24 +106,23 @@ suspend fun part2(input: String, logger: ProgressLogger = object : Day20Progress
     val matches = matches(tiles, logger)
 
     val width = matches.count { (_, e) -> e.size == 3 } / 4 + 2
-    val jigsaw = placeTiles(matches, logger)
+    val (jigsaw, orientations) = placeTiles(matches, logger)
 
-    val tileSize = 10
-    val image = Array((tileSize - 1) * width + 1) { Array((tileSize - 1) * width + 1) { ' ' } }
+    val tileSize = tiles.values.first().size
+    val image = Array((tileSize - 2) * width) { Array((tileSize - 2) * width) { ' ' } }
 
-    // place
+    // copy to large image
     jigsaw.indices.forEach { r ->
         jigsaw[r].indices.forEach { c ->
             val tile = jigsaw[r][c]
-            val orientation = orientation(jigsaw, r, c, matches[tile]!!)
+            val orientation = orientations[r][c]
 
             (1 until tileSize - 1).forEach { y ->
                 (1 until tileSize - 1).forEach { x ->
                     val at = tiles[tile]!!.at(y, x, orientation)
-                    image[r * (tileSize - 2) + y][c * (tileSize - 2) + x] = at
+                    image[r * (tileSize - 2) + y - 1][c * (tileSize - 2) + x - 1] = at
                 }
             }
-            logger.tileRotated(tile!!, orientation)
         }
     }
 
@@ -130,6 +130,7 @@ suspend fun part2(input: String, logger: ProgressLogger = object : Day20Progress
 
     val full = Tile(0, image.map { line -> line.joinToString("") })
 
+    logger.imageComposed(full)
     val str = """
         |                  # 
         |#    ##    ##    ###
@@ -144,6 +145,11 @@ suspend fun part2(input: String, logger: ProgressLogger = object : Day20Progress
             (0..image.size).sumBy { y ->
                 (0..image.size).count { x ->
                     monster.all { (my, mx) -> full.at(y + my, x + mx, o) == '#' }
+                        .also {
+                            if (it) logger.monsterFound(
+                                y, x, o,
+                                monster.map { (my, mx) -> full.orient(y + my, x + mx, o) })
+                        }
                 }
             }
         }
@@ -155,40 +161,10 @@ suspend fun part2(input: String, logger: ProgressLogger = object : Day20Progress
     return result.toString()
 }
 
-private fun orientation(
-    jigsaw: Array<Array<Long?>>,
-    r: Int,
-    c: Int,
-    matches: Map<Edge, Long>
-): Orientation {
-    val actT = if (r - 1 in jigsaw.indices) jigsaw[r - 1][c] else null
-    val actB = if (r + 1 in jigsaw.indices) jigsaw[r + 1][c] else null
-    val actL = if (c - 1 in jigsaw[r].indices) jigsaw[r][c - 1] else null
-    val actR = if (c + 1 in jigsaw[r].indices) jigsaw[r][c + 1] else null
-    val expT = matches[Top]
-    val expB = matches[Bottom]
-    val expL = matches[Left]
-    val expR = matches[Right]
-    return when {
-        test(actT to expT, actR to expR, actB to expB, actL to expL) -> Orientation(Top, false)
-        test(actT to expT, actR to expL, actB to expB, actL to expR) -> Orientation(Top, true)
-        test(actT to expR, actR to expB, actB to expL, actL to expT) -> Orientation(Right, false)
-        test(actT to expL, actR to expB, actB to expR, actL to expT) -> Orientation(Right, true)
-        test(actT to expB, actR to expL, actB to expT, actL to expR) -> Orientation(Bottom, false)
-        test(actT to expB, actR to expR, actB to expT, actL to expL) -> Orientation(Bottom, true)
-        test(actT to expL, actR to expT, actB to expR, actL to expB) -> Orientation(Left, false)
-        test(actT to expR, actR to expT, actB to expL, actL to expB) -> Orientation(Left, true)
-        else -> error("wtf")
-    }
-}
-
-private fun test(vararg pairs: Pair<Long?, Long?>) =
-    pairs.all { (actual, expected) -> expected == actual || actual == 0L }
-
 private suspend fun placeTiles(
     matches: Map<Long, Map<Edge, Long>>,
     logger: Day20ProgressLogger
-): Array<Array<Long?>> {
+): Pair<Array<Array<Long>>, Array<Array<Orientation>>> {
     val byNeighbours = matches.entries.groupBy { (_, m) -> m.size }
         .mapValues { (_, v) -> v.map { it.key } }
     val cornerTiles = byNeighbours[2]!!
@@ -196,7 +172,8 @@ private suspend fun placeTiles(
     val insideTiles = byNeighbours[4]!!
 
     val width = edgeTiles.size / 4 + 2
-    val jigsaw: Array<Array<Long?>> = Array(width) { Array(width) { 0L } }
+    val jigsaw: Array<Array<Long>> = Array(width) { Array(width) { 0L } }
+    val orientations: Array<Array<Orientation>> = Array(width) { Array(width) { Orientation(Top, false) } }
     val used = mutableSetOf<Long>()
 
     // first corner
@@ -207,7 +184,7 @@ private suspend fun placeTiles(
     run {
         val r = 0
         val c = 1
-        val prev = jigsaw[r][c - 1]!!
+        val prev = jigsaw[r][c - 1]
         val next = matches[prev]!!.values.first { it in edgeTiles && it !in used }
         place(next, r, c, jigsaw, used, logger)
     }
@@ -215,105 +192,91 @@ private suspend fun placeTiles(
     run {
         val r = 1
         val c = 0
-        val prev = jigsaw[r - 1][c]!!
+        val prev = jigsaw[r - 1][c]
         val next = matches[prev]!!.values.first { it in edgeTiles && it !in used }
         place(next, r, c, jigsaw, used, logger)
     }
     // orient fist corner with adjacent
     run {
-        val at00 = jigsaw[0][0]!!
-        val at01 = jigsaw[0][1]!!
-        val at10 = jigsaw[1][0]!!
-        val orientation00 = orientation(jigsaw, 0, 0, matches[at00]!!)
-        logger.tileRotated(at00, orientation00)
-        val orientation01 = orientation(jigsaw, 0, 1, matches[at01]!!)
-        logger.tileRotated(at01, orientation01)
-        val orientation10 = orientation(jigsaw, 1, 0, matches[at10]!!)
-        logger.tileRotated(at10, orientation10)
+        orient(orientations, jigsaw, 0, 0, matches[jigsaw[0][0]]!!, logger)
+        orient(orientations, jigsaw, 1, 0, matches[jigsaw[1][0]]!!, logger)
+        orient(orientations, jigsaw, 0, 1, matches[jigsaw[0][1]]!!, logger)
     }
 
 
     // rest of first edge
     (2 until width - 1).forEach { c ->
         val r = 0
-        val prev = jigsaw[r][c - 1]!!
-        val next = matches[prev]!!.values.single { it in edgeTiles && it !in used }
+        val prev = jigsaw[r][c - 1]
+        val next = matches[prev]!!.values.first { it in edgeTiles && it !in used }
         place(next, r, c, jigsaw, used, logger)
-        val nextOrientation = orientation(jigsaw, r, c, matches[next]!!)
-        logger.tileRotated(next, nextOrientation)
+        orient(orientations, jigsaw, r, c, matches[next]!!, logger)
     }
     // rest of second edge
     (2 until width - 1).forEach { r ->
         val c = 0
-        val prev = jigsaw[r - 1][c]!!
-        val next = matches[prev]!!.values.single { it in edgeTiles && it !in used }
+        val prev = jigsaw[r - 1][c]
+        val next = matches[prev]!!.values.first { it in edgeTiles && it !in used }
         place(next, r, c, jigsaw, used, logger)
-        val nextOrientation = orientation(jigsaw, r, c, matches[next]!!)
-        logger.tileRotated(next, nextOrientation)
+        orient(orientations, jigsaw, r, c, matches[next]!!, logger)
     }
     // second corner
-    cornerTiles.first { jigsaw[0][width - 2]!! in matches[it]!!.values && it !in used }.let { next ->
+    cornerTiles.first { jigsaw[0][width - 2] in matches[it]!!.values && it !in used }.let { next ->
         val r = 0
         val c = width - 1
         place(next, r, c, jigsaw, used, logger)
-        val nextOrientation = orientation(jigsaw, r, c, matches[next]!!)
-        logger.tileRotated(next, nextOrientation)
+        orient(orientations, jigsaw, r, c, matches[next]!!, logger)
     }
     // third corner
-    cornerTiles.first { jigsaw[width - 2][0]!! in matches[it]!!.values && it !in used }.let { next ->
+    cornerTiles.first { jigsaw[width - 2][0] in matches[it]!!.values && it !in used }.let { next ->
         val r = width - 1
         val c = 0
         place(next, r, c, jigsaw, used, logger)
-        val nextOrientation = orientation(jigsaw, r, c, matches[next]!!)
-        logger.tileRotated(next, nextOrientation)
+        orient(orientations, jigsaw, r, c, matches[next]!!, logger)
     }
     // third edge
     (1 until width - 1).forEach { r ->
         val c = width - 1
-        val prev = jigsaw[r - 1][c]!!
-        val next = matches[prev]!!.values.single { it in edgeTiles && it !in used }
+        val prev = jigsaw[r - 1][c]
+        val next = matches[prev]!!.values.first { it in edgeTiles && it !in used }
         place(next, r, c, jigsaw, used, logger)
-        val nextOrientation = orientation(jigsaw, r, c, matches[next]!!)
-        logger.tileRotated(next, nextOrientation)
+        orient(orientations, jigsaw, r, c, matches[next]!!, logger)
     }
     // fourth edge
     (1 until width - 1).forEach { c ->
         val r = width - 1
-        val prev = jigsaw[r][c - 1]!!
-        val next = matches[prev]!!.values.single { it in edgeTiles && it !in used }
+        val prev = jigsaw[r][c - 1]
+        val next = matches[prev]!!.values.first { it in edgeTiles && it !in used }
         place(next, r, c, jigsaw, used, logger)
-        val nextOrientation = orientation(jigsaw, r, c, matches[next]!!)
-        logger.tileRotated(next, nextOrientation)
+        orient(orientations, jigsaw, r, c, matches[next]!!, logger)
     }
     // fourth corner
-    cornerTiles.first { jigsaw[width - 2][width - 1]!! in matches[it]!!.values && it !in used }.let { next ->
+    cornerTiles.first { jigsaw[width - 2][width - 1] in matches[it]!!.values && it !in used }.let { next ->
         val c = width - 1
         val r = width - 1
         place(next, r, c, jigsaw, used, logger)
-        val nextOrientation = orientation(jigsaw, r, c, matches[next]!!)
-        logger.tileRotated(next, nextOrientation)
+        orient(orientations, jigsaw, r, c, matches[next]!!, logger)
     }
 
     //middle
     (1 until width - 1).forEach { r ->
         (1 until width - 1).forEach { c ->
-            val onTop = jigsaw[r - 1][c]!!
-            val onLeft = jigsaw[r][c - 1]!!
+            val onTop = jigsaw[r - 1][c]
+            val onLeft = jigsaw[r][c - 1]
             val next =
-                matches[onTop]!!.values.intersect(matches[onLeft]!!.values).single { it in insideTiles && it !in used }
+                matches[onTop]!!.values.intersect(matches[onLeft]!!.values).first { it in insideTiles && it !in used }
             place(next, r, c, jigsaw, used, logger)
-            val nextOrientation = orientation(jigsaw, r, c, matches[next]!!)
-            logger.tileRotated(next, nextOrientation)
+            orient(orientations, jigsaw, r, c, matches[next]!!, logger)
         }
     }
-    return jigsaw
+    return jigsaw to orientations
 }
 
 private suspend fun place(
     next: Long,
     row: Int,
     col: Int,
-    jigsaw: Array<Array<Long?>>,
+    jigsaw: Array<Array<Long>>,
     used: MutableSet<Long>,
     logger: Day20ProgressLogger
 ) {
@@ -323,3 +286,36 @@ private suspend fun place(
     logger.tilePlaced(next, row, col)
 }
 
+private suspend fun orient(
+    orientations: Array<Array<Orientation>>,
+    jigsaw: Array<Array<Long>>,
+    r: Int,
+    c: Int,
+    matches: Map<Edge, Long>,
+    logger: Day20ProgressLogger
+) {
+    val actT = if (r - 1 in jigsaw.indices) jigsaw[r - 1][c] else null
+    val actB = if (r + 1 in jigsaw.indices) jigsaw[r + 1][c] else null
+    val actL = if (c - 1 in jigsaw[r].indices) jigsaw[r][c - 1] else null
+    val actR = if (c + 1 in jigsaw[r].indices) jigsaw[r][c + 1] else null
+    val expT = matches[Top]
+    val expB = matches[Bottom]
+    val expL = matches[Left]
+    val expR = matches[Right]
+    orientations[r][c] = when {
+        test(actT to expT, actR to expR, actB to expB, actL to expL) -> Orientation(Top, false)
+        test(actT to expT, actR to expL, actB to expB, actL to expR) -> Orientation(Top, true)
+        test(actT to expR, actR to expB, actB to expL, actL to expT) -> Orientation(Right, false)
+        test(actT to expL, actR to expB, actB to expR, actL to expT) -> Orientation(Right, true)
+        test(actT to expB, actR to expL, actB to expT, actL to expR) -> Orientation(Bottom, false)
+        test(actT to expB, actR to expR, actB to expT, actL to expL) -> Orientation(Bottom, true)
+        test(actT to expL, actR to expT, actB to expR, actL to expB) -> Orientation(Left, false)
+        test(actT to expR, actR to expT, actB to expL, actL to expB) -> Orientation(Left, true)
+        else -> error("wtf")
+    }.also {
+        logger.tileOriented(jigsaw[r][c], it)
+    }
+}
+
+private fun test(vararg pairs: Pair<Long?, Long?>) =
+    pairs.all { (actual, expected) -> expected == actual || actual == 0L }
