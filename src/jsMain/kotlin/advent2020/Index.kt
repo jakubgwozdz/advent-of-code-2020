@@ -52,6 +52,9 @@ val knownTasks by lazy {
         advent2020.day20.day20puzzleInfo,
         advent2020.day21.day21puzzleInfo,
         advent2020.day22.day22puzzleInfo,
+        advent2020.day23.day23puzzleInfo,
+        advent2020.day24.day24puzzleInfo,
+        advent2020.day25.day25puzzleInfo,
     )
 }
 

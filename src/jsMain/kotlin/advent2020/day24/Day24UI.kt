@@ -9,7 +9,7 @@ import advent2020.taskSection
 import kotlinx.browser.document
 
 val day24puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
-val day24puzzleInfo = PuzzleInfo("day24", "<TITLE>", 24, 2020, readOnly = true)
+val day24puzzleInfo = PuzzleInfo("day24", "Lobby Layout", 24, 2020)
 
 @JsExport
 fun createUI() {

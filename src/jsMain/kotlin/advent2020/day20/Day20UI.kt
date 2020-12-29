@@ -21,7 +21,7 @@ import org.w3c.dom.HTMLElement
 import kotlin.math.PI
 
 val day20puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
-val day20puzzleInfo = PuzzleInfo("day20", "Jurassic Jigsaw", 20, 2020)
+val day20puzzleInfo = PuzzleInfo("day20", "Jurassic Jigsaw", 20, 2020, animation = true)
 
 @JsExport
 fun createUI() {
@@ -258,14 +258,26 @@ class Day20Section(
             if (image != null) {
                 ctx.save()
                 val ts = 2400.0 / image.lines.size
+                ctx.fillStyle = Colors.imagePixel
                 image.lines.indices.forEach { y ->
                     image.lines[y].indices.forEach { x ->
                         if (image.lines[y][x] == '#') {
-                            ctx.fillStyle = if (y to x in monsters) Colors.monsterPixel else Colors.imagePixel
                             ctx.fillRect(x * ts, y * ts, ts, ts)
                         }
                     }
                 }
+
+                ctx.fillStyle = Colors.monsterPixel
+                monsters.forEach { (y, x) ->
+                    ctx.fillRect(x * ts - 10, y * ts - 10, ts + 20, ts + 20)
+                }
+
+                ctx.fillStyle = Colors.imagePixel
+                monsters.forEach { (y, x) ->
+                    ctx.fillRect(x * ts, y * ts, ts, ts)
+                }
+
+
                 ctx.restore()
             } else {
 
