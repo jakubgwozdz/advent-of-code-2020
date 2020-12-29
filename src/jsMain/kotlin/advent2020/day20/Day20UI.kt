@@ -42,8 +42,9 @@ data class TileInfo(
     val tile: Tile,
     var row: Double,
     var column: Double,
-    var angle: Double = (tile.id % 360 - 180.0) / 4,// * PI / 180,
+    var angle: Double = 0.0,
     var flip: Double = 1.0,
+    var scale: Double = 1.0,
     val matches: MutableMap<Edge, Long> = mutableMapOf(),
     var correctPlace: Boolean = false
 )
@@ -88,11 +89,32 @@ class Day20Section(
     override suspend fun foundTile(tile: Tile) {
         val r = tileCount / 12
         val c = tileCount % 12
-        this.tiles[tile.id] = TileInfo(tile, r.toDouble(), c.toDouble())
+
+        val startAngle = (tile.id % 360 - 180.0) / 4
+        val endAngle = tile.id / 10.0 - 300.0
+        val startScale = 5.0
+        val endScale = 1.0
+        val startFlip = 1.0
+        val endFlip = 1.0
+        val startRow = r + 5.0
+        val endRow = r.toDouble()
+        val startColumn = tile.id / 300.0
+        val endColumn = c.toDouble()
+
+        val tileInfo = TileInfo(tile, startRow, startColumn, startAngle, startFlip, startScale)
+
+        this.tiles[tile.id] = tileInfo
         lastAdded = tile.id
         tileCount++
-        markToRedraw()
-        delayIfChecked(waitTimeForOneTile())
+
+        delayIfChecked(waitTimeForOneTile() / 2) { pct ->
+            tileInfo.row = (endRow - startRow) * pct + startRow
+            tileInfo.column = (endColumn - startColumn) * pct + startColumn
+            tileInfo.angle = (endAngle - startAngle) * pct + startAngle
+            tileInfo.flip = (endFlip - startFlip) * pct + startFlip
+            tileInfo.scale = (endScale - startScale) * pct + startScale
+            markToRedraw()
+        }
     }
 
     override suspend fun allTilesFound() {
@@ -113,7 +135,7 @@ class Day20Section(
         }
         lastAdded = id1
         markToRedraw()
-        delayIfChecked(waitTimeForOneTile())
+        delayIfChecked(waitTimeForOneTile() / 3)
     }
 
     override suspend fun allMatchesFound() {
@@ -172,7 +194,7 @@ class Day20Section(
         }
     }
 
-    private fun waitTimeForOneTile() = 10000 / (tileCount + 10)
+    private fun waitTimeForOneTile() = 5000 / (tileCount / 5 + 10)
 
     override suspend fun allTilesRotated() {
         lastAdded = null
@@ -201,8 +223,6 @@ class Day20Section(
         const val jigsawPixelNoMatch = "rgb(0, 0, 0)"
         const val connection = "rgb(255, 0, 0)"
     }
-
-    var lines = 0
 
     fun markToRedraw() {
         shouldUpdate = true
@@ -269,8 +289,6 @@ class Day20Section(
             ctx.moveTo(start.x, start.y)
             ctx.lineTo(end.x, end.y)
             ctx.stroke()
-            if (lines < 100) console.log("${tileInfo.tile.id} [${start.x}, ${start.y}] - ${other.tile.id} [${end.x}, ${end.y}] ")
-            lines++
         }
     }
 
@@ -293,7 +311,7 @@ class Day20Section(
         val aFg = (1.0 - alpha) * (scale - 0.8) / (0.45) + alpha
         val aBg = (-alpha) * (scale - 0.8) / (0.45) + alpha
 
-        ctx.globalAlpha = aBg
+        ctx.globalAlpha = aBg * (1.0 / tileInfo.scale)
         ctx.fillStyle = Colors.border
         ctx.fillRect(-2.0, -2.0, 204.0, 204.0)
         ctx.fillStyle = Colors.tileBg
@@ -311,7 +329,7 @@ class Day20Section(
         ctx.font = "30px Lato"
         ctx.fillText("${tile.id}", 10.0, -5.0)
 
-        ctx.globalAlpha = aFg
+        ctx.globalAlpha = aFg * (1.0 / tileInfo.scale)
         ctx.fillStyle = Colors.imagePixel
         (1..tile.size - 2).forEach { y ->
             (1..tile.size - 2).forEach { x ->
@@ -320,7 +338,7 @@ class Day20Section(
             }
         }
 
-        ctx.globalAlpha = aBg
+        ctx.globalAlpha = aBg * (1.0 / tileInfo.scale)
         // edges
         val hasT = Top in tileInfo.matches
         val hasR = Right in tileInfo.matches
@@ -357,12 +375,12 @@ class Day20Section(
     }
 
     private fun tileTransform(tileInfo: TileInfo, size: Double = 200.0) = DOMMatrix()
-        .translate(tileInfo.column.toDouble() * size, tileInfo.row.toDouble() * size)
+        .translate(tileInfo.column * size, tileInfo.row * size)
         .translate(size / 2, size / 2)
         .scale(scale)
         .rotate(tileInfo.angle)
-//        .run { if (tileInfo.flip) flipX() else this }
         .scaleNonUniform(tileInfo.flip)
+        .scale(tileInfo.scale)
         .translate(-size / 2, -size / 2)
 
 }
