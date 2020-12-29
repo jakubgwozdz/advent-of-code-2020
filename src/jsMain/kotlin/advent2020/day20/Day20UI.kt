@@ -40,10 +40,10 @@ fun createUI() {
 
 data class TileInfo(
     val tile: Tile,
-    val row: Int,
-    val column: Int,
+    val row: Double,
+    val column: Double,
     val angle: Double = (tile.id % 360 - 180.0) / 4,// * PI / 180,
-    val flip: Boolean = false,
+    val flip: Double = 1.0,
     val matches: Map<Edge, Long> = emptyMap(),
     val correctPlace: Boolean = false
 )
@@ -87,7 +87,7 @@ class Day20Section(
         val index = tiles.size
         val r = index / 12
         val c = index % 12
-        this.tiles[tile.id] = TileInfo(tile, r, c)
+        this.tiles[tile.id] = TileInfo(tile, r.toDouble(), c.toDouble())
         lastAdded = tile.id
         markToRedraw()
         delayIfChecked(15)
@@ -121,7 +121,8 @@ class Day20Section(
 
 
     override suspend fun tilePlaced(id: Long, row: Int, col: Int) {
-        tiles[id] = tiles[id]!!.copy(row = row, column = col, correctPlace = true)
+        val oldInfo = tiles[id]!!
+        tiles[id] = oldInfo.copy(row = row.toDouble(), column = col.toDouble(), correctPlace = true)
         lastAdded = id
         markToRedraw()
         delayIfChecked(15)
@@ -140,7 +141,7 @@ class Day20Section(
             Bottom -> 180.0
             Left -> 90.0
         }
-        tiles[id] = tiles[id]!!.copy(angle = angle, flip = orientation.flip)
+        tiles[id] = tiles[id]!!.copy(angle = angle, flip = if (orientation.flip) -1.0 else 1.0)
         lastAdded = id
         markToRedraw()
         delayIfChecked(15)
@@ -153,7 +154,7 @@ class Day20Section(
             markToRedraw()
             delayIfChecked(6)
         }
-        delayIfChecked(500)
+        delayIfChecked(1500)
         (1000..1250).forEach { scale ->
             this.scale = scale / 1000.0
             markToRedraw()
@@ -168,7 +169,7 @@ class Day20Section(
         const val tileBg = "rgb(34, 85, 221)"
         const val text = "rgb(255, 255, 255)"
         const val imagePixel = "rgb(221, 238, 255)"
-        const val jigsawPixel = "rgb(91, 176, 121)"
+        const val jigsawPixel = "rgb(255, 176, 121)"
         const val jigsawPixelNoMatch = "rgb(0, 0, 0)"
         const val connection = "rgb(255, 0, 0)"
     }
@@ -332,7 +333,8 @@ class Day20Section(
         .translate(size / 2, size / 2)
         .scale(scale)
         .rotate(tileInfo.angle)
-        .run { if (tileInfo.flip) flipX() else this }
+//        .run { if (tileInfo.flip) flipX() else this }
+        .scaleNonUniform(tileInfo.flip)
         .translate(-size / 2, -size / 2)
 
 }

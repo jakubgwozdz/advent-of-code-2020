@@ -240,8 +240,8 @@ private suspend fun placeTiles(
     }
 
     //middle
-    (1 until width - 1).forEach { c ->
-        (1 until width - 1).forEach { r ->
+    (1 until width - 1).forEach { r ->
+        (1 until width - 1).forEach { c ->
             val onTop = jigsaw[r - 1][c]!!
             val onLeft = jigsaw[r][c - 1]!!
             val next =
