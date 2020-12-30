@@ -179,7 +179,7 @@ private suspend fun placeTiles(
     val used = mutableSetOf<Long>()
 
     // first corner
-    cornerTiles.first().let { next ->
+    cornerTiles.random().let { next ->
         place(next, 0, 0, jigsaw, used, logger)
     }
     // first of first edge
@@ -187,7 +187,7 @@ private suspend fun placeTiles(
         val r = 0
         val c = 1
         val prev = jigsaw[r][c - 1]
-        val next = matches[prev]!!.values.first { it in edgeTiles && it !in used }
+        val next = matches[prev]!!.values.filter { it in edgeTiles && it !in used }.random()
         place(next, r, c, jigsaw, used, logger)
     }
     // first of second edge

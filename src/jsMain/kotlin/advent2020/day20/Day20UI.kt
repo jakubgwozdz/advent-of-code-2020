@@ -167,6 +167,15 @@ class Day20Section(
         tileCount = 0
         log.addLines("> All matches found")
         markToRedraw()
+        val corners = tiles.values
+            .filter { it.matches.size == 2 }
+            .map { it.tile.id }
+        val part1 = corners
+            .fold(1L) { acc, id -> acc * id }
+        log.addLines("> Part 1 result is ${corners.joinToString("*")} = $part1")
+        resultField.show(part1.toString())
+
+
         delayIfChecked(1000)
         log.addLines("> Joining tiles together")
     }
