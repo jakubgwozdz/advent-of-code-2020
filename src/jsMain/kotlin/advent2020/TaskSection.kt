@@ -170,14 +170,16 @@ open class SimpleReportFigure(
     private var hidden: Boolean,
 ) : ReportField {
     private val lines = mutableListOf<String>()
-    private var shouldUpdate = false
+    private var shouldUpdate = true
     var timer: Int? = null
 
     private fun flush() {
-        val textContent = this.lines.joinToString("\n")
-        preElement.textContent = textContent
-        preElement.scrollTop = preElement.scrollHeight.toDouble()
-        shouldUpdate = false
+        if (shouldUpdate) {
+            val textContent = this.lines.joinToString("\n")
+            preElement.textContent = textContent
+            preElement.scrollTop = preElement.scrollHeight.toDouble()
+            shouldUpdate = false
+        }
     }
 
     override fun clear() {

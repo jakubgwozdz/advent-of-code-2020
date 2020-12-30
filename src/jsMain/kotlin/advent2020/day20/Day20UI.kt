@@ -4,7 +4,9 @@ import advent2020.GenericTaskSection
 import advent2020.GenericTaskSectionElements
 import advent2020.PuzzleContext
 import advent2020.PuzzleInfo
+import advent2020.ReportField
 import advent2020.ResultField
+import advent2020.SimpleReportFigure
 import advent2020.TaskSectionBuilder
 import advent2020.createHeader
 import advent2020.day20.Edge.*
@@ -13,6 +15,7 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.html.TagConsumer
 import kotlinx.html.js.canvas
+import kotlinx.html.js.div
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.DOMMatrix
 import org.w3c.dom.DOMPoint
@@ -29,11 +32,11 @@ fun createUI() {
     createHeader(day20puzzleInfo, day20puzzleContext)
 
     day20Section {
-        title = "Part 1 & 2"
+        title = "Find monsters"
         puzzleContext = day20puzzleContext
         task = ::part2
         delay = true
-        resultHeading = "Part 1"
+        resultHeading = "Corner puzzles ids"
     }
 
 }
@@ -52,11 +55,12 @@ data class TileInfo(
 class Day20Section(
     genericElements: GenericTaskSectionElements,
     val canvas: HTMLCanvasElement,
-    val result2Field: ResultField
+    val result2Field: ResultField,
+    val log: ReportField
 ) :
     GenericTaskSection(genericElements), Day20ProgressLogger {
 
-    private var shouldUpdate = false
+    private var shouldUpdate = true
     private var scale = 0.8
     private var tileCount = 0
     private var fullImage: Tile? = null
@@ -73,6 +77,8 @@ class Day20Section(
         result2Field.hide()
         tiles.clear()
         monsters.clear()
+        log.clear()
+        log.addLines("> Throwing tiles somewhere")
         scale = 0.8
         lastAdded = null
         fullImage = null
@@ -86,6 +92,7 @@ class Day20Section(
             .filter { it.matches.size == 2 }
             .fold(1L) { acc, tileInfo -> acc * tileInfo.tile.id }
             .let { resultField.show(it.toString()) }
+        log.addLines("> Found $result pixels that are not monsters")
         result2Field.show(result)
         lastAdded = null
         markToRedraw()
@@ -125,8 +132,10 @@ class Day20Section(
     override suspend fun allTilesFound() {
         lastAdded = null
         tileCount = 0
+        log.addLines("> ${tiles.size} tiles found")
         markToRedraw()
         delayIfChecked(1000)
+        log.addLines("> Searching for matches between tiles")
     }
 
     override suspend fun foundMatch(id1: Long, edge: Edge, id2: Long) {
@@ -137,6 +146,7 @@ class Day20Section(
                 .filter { it.matches.size == 2 }
                 .fold(1L) { acc, tileInfo -> acc * tileInfo.tile.id }
                 .let { resultField.show(it.toString()) }
+                .also { log.addLines("> Tile with id $lastAdded has only 2 matches, it's a corner!") }
         }
         lastAdded = id1
         markToRedraw()
@@ -146,8 +156,10 @@ class Day20Section(
     override suspend fun allMatchesFound() {
         lastAdded = null
         tileCount = 0
+        log.addLines("> All matches found")
         markToRedraw()
         delayIfChecked(1000)
+        log.addLines("> Joining tiles together")
     }
 
 
@@ -175,8 +187,10 @@ class Day20Section(
     override suspend fun allTilesPlaced() {
         lastAdded = null
         tileCount = 0
+        log.addLines("> All tiles joined")
         markToRedraw()
         delayIfChecked(1000)
+        log.addLines("> Removing border on each tile as it's not part of image")
     }
 
     override suspend fun tileOriented(id: Long, orientation: Orientation) {
@@ -199,7 +213,14 @@ class Day20Section(
         }
     }
 
-    override suspend fun allTilesRotated() {
+    override suspend fun monsterFound(y: Int, x: Int, o: Orientation, pixels: List<Pair<Int, Int>>) {
+        log.addLines("> Found monster: row $y column ${x + 20}")
+        monsters.addAll(pixels)
+        markToRedraw()
+        delayIfChecked(1000)
+    }
+
+    override suspend fun imageComposed(image: Tile) {
         lastAdded = null
         tileCount = 0
         delayIfChecked(1200) { pct ->
@@ -212,17 +233,10 @@ class Day20Section(
             this.scale = (1.25 - 1.0) * pct + 1.0
             markToRedraw()
         }
-
-    }
-
-    override suspend fun monsterFound(y: Int, x: Int, o: Orientation, pixels: List<Pair<Int, Int>>) {
-        monsters.addAll(pixels)
-        markToRedraw()
-        delayIfChecked(1000)
-    }
-
-    override suspend fun imageComposed(image: Tile) {
         fullImage = image
+        log.addLines("> Full image composed, looking for monsters. Monsters look like this:")
+        log.addLines(*monster.lines().toTypedArray())
+        markToRedraw()
     }
 
     object Colors {
@@ -241,12 +255,31 @@ class Day20Section(
         shouldUpdate = true
     }
 
+    fun fitToParent() {
+        log as SimpleReportFigure
+        val w = log.wholeElement.clientWidth
+        console.log("setting canvas size to $w")
+        canvas.width = w
+        canvas.height = w
+        log.preElement.style.removeProperty("max-height")
+        val titleHeight = log.titleElement.parentElement!!.clientHeight
+        console.log("title height is $titleHeight px")
+        val preHeight = w - titleHeight
+        log.preElement.style.height = "${preHeight}px"
+        console.log("setting log height to $preHeight px")
+        markToRedraw()
+    }
+
+    init {
+        log.show("")
+        fitToParent()
+    }
+
     private fun flush() {
         if (shouldUpdate) canvas.getContext("2d").let { ctx ->
             ctx as CanvasRenderingContext2D
-            val w = ctx.canvas.parentElement?.clientWidth!!
-            ctx.canvas.width = w
-            ctx.canvas.height = w
+            val w = ctx.canvas.width
+            ctx.save()
             ctx.scale(w / 2400.0, w / 2400.0)
 
             ctx.fillStyle = Colors.border
@@ -309,8 +342,8 @@ class Day20Section(
                     ctx.restore()
                 }
 
-                ctx.globalAlpha = 1.0
             }
+            ctx.restore()
         }.also {
             shouldUpdate = false
         }
@@ -428,8 +461,9 @@ class Day20Section(
 
 class Day20Part1SectionBuilder : TaskSectionBuilder() {
     lateinit var canvas: HTMLCanvasElement
-    var result2Heading = "Part 2"
+    var result2Heading = "Non-monster pixels"
     lateinit var result2Field: ResultField
+    lateinit var log: ReportField
 
     override fun createTaskSpecificLevelFields(bodyBuilder: TagConsumer<HTMLElement>) {
         result2Field = bodyBuilder.createResultField(result2Heading)
@@ -437,12 +471,19 @@ class Day20Part1SectionBuilder : TaskSectionBuilder() {
 
     override fun createTaskSpecificFields(bodyBuilder: TagConsumer<HTMLElement>) {
         with(bodyBuilder) {
-            canvas = canvas { }
+            div("columns") {
+                div("column is-half") {
+                    canvas = canvas { }
+                }
+                div("column is-half") {
+                    log = bodyBuilder.createLogField()
+                }
+            }
         }
     }
 
-    override fun constructObject() = Day20Section(genericElements(), canvas, result2Field)
-        .apply { window.onresize = { this.markToRedraw() } }
+    override fun constructObject() = Day20Section(genericElements(), canvas, result2Field, log)
+        .apply { window.onresize = { this.fitToParent() } }
 }
 
 fun day20Section(op: Day20Part1SectionBuilder.() -> Unit) = Day20Part1SectionBuilder()

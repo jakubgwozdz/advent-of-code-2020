@@ -58,9 +58,8 @@ interface Day20ProgressLogger : ProgressLogger {
     suspend fun allTilesFound() {}
     suspend fun allMatchesFound() {}
     suspend fun allTilesPlaced() {}
-    suspend fun allTilesRotated() {}
-    suspend fun monsterFound(y: Int, x: Int, o: Orientation, pixels: List<Pair<Int, Int>>) {}
     suspend fun imageComposed(image: Tile) {}
+    suspend fun monsterFound(y: Int, x: Int, o: Orientation, pixels: List<Pair<Int, Int>>) {}
 }
 
 suspend fun part1(input: String, logger: ProgressLogger = object : Day20ProgressLogger {}): String {
@@ -108,6 +107,8 @@ suspend fun part2(input: String, logger: ProgressLogger = object : Day20Progress
     val width = matches.count { (_, e) -> e.size == 3 } / 4 + 2
     val (jigsaw, orientations) = placeTiles(matches, logger)
 
+    logger.allTilesPlaced()
+
     val tileSize = tiles.values.first().size
     val image = Array((tileSize - 2) * width) { Array((tileSize - 2) * width) { ' ' } }
 
@@ -126,18 +127,11 @@ suspend fun part2(input: String, logger: ProgressLogger = object : Day20Progress
         }
     }
 
-    logger.allTilesRotated()
-
     val full = Tile(0, image.map { line -> line.joinToString("") })
 
     logger.imageComposed(full)
-    val str = """
-        |                  # 
-        |#    ##    ##    ###
-        | #  #  #  #  #  #   
-        """.trimMargin()
 
-    val monster = str.lines()
+    val monster = monster.lines()
         .flatMapIndexed { y: Int, l: String -> l.mapIndexedNotNull { x, c -> if (c == '#') y to x else null } }
 
     val monsters = Edge.values().flatMap { listOf(Orientation(it, false), Orientation(it, true)) }
@@ -159,6 +153,14 @@ suspend fun part2(input: String, logger: ProgressLogger = object : Day20Progress
     val result = hashes - monster.size * monsters
 
     return result.toString()
+}
+
+val monster by lazy {
+    """
+        |                  # 
+        |#    ##    ##    ###
+        | #  #  #  #  #  #   
+        """.trimMargin()
 }
 
 private suspend fun placeTiles(
