@@ -62,7 +62,7 @@ class Day20Section(
     private var fullImage: Tile? = null
 
     var timer: Int? = window.setInterval(::flush, 16)
-    private fun waitTimeForOneTile() = 1000 / (tileCount / 5 + 10)
+    private fun waitTimeForOneTile() = 5000 / (tileCount / 5 + 10)
 
     private val tiles: MutableMap<Long, TileInfo> = mutableMapOf()
     private val monsters: MutableSet<Pair<Int, Int>> = mutableSetOf()
@@ -420,7 +420,7 @@ class Day20Section(
         .translate(size / 2, size / 2)
         .scale(scale)
         .rotate(tileInfo.angle)
-        .scaleNonUniform(tileInfo.flip)
+        .multiply(DOMMatrix(arrayOf(tileInfo.flip, 0.0, 0.0, 1.0, 0.0, 0.0)))
         .scale(tileInfo.scale)
         .translate(-size / 2, -size / 2)
 
