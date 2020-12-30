@@ -214,18 +214,18 @@ private suspend fun placeTiles(
         place(next, r, c, jigsaw, used, logger)
         orient(orientations, jigsaw, r, c, matches[next]!!, logger)
     }
+    // second corner
+    cornerTiles.first { jigsaw[0][width - 2] in matches[it]!!.values && it !in used }.let { next ->
+        val r = 0
+        val c = width - 1
+        place(next, r, c, jigsaw, used, logger)
+        orient(orientations, jigsaw, r, c, matches[next]!!, logger)
+    }
     // rest of second edge
     (2 until width - 1).forEach { r ->
         val c = 0
         val prev = jigsaw[r - 1][c]
         val next = matches[prev]!!.values.first { it in edgeTiles && it !in used }
-        place(next, r, c, jigsaw, used, logger)
-        orient(orientations, jigsaw, r, c, matches[next]!!, logger)
-    }
-    // second corner
-    cornerTiles.first { jigsaw[0][width - 2] in matches[it]!!.values && it !in used }.let { next ->
-        val r = 0
-        val c = width - 1
         place(next, r, c, jigsaw, used, logger)
         orient(orientations, jigsaw, r, c, matches[next]!!, logger)
     }
