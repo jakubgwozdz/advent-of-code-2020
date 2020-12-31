@@ -21,6 +21,9 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
         const val connection = "rgb(255, 0, 0)"
     }
 
+    var logicalWidth = 1200.0
+    var tileWidth = logicalWidth / 12
+    var pixelWidth = tileWidth / 10
 
     var size: Int
         get() = canvas.width
@@ -40,37 +43,34 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
         val ctx = canvas.getContext("2d") as CanvasRenderingContext2D
         ctx.save()
         val w = ctx.canvas.width
-        ctx.scale(w / 2400.0, w / 2400.0)
+        ctx.scale(w / logicalWidth, w / logicalWidth)
 
         ctx.fillStyle = Colors.black
-        ctx.fillRect(0.0, 0.0, 2400.0, 2400.0)
+        ctx.fillRect(0.0, 0.0, logicalWidth, logicalWidth)
 
-        val ts = 2400.0 / image.lines.size
+        pixelWidth = logicalWidth / image.lines.size
         val transform = DOMMatrix()
-            .translate(2400.0 / 2, 2400.0 / 2)
+            .translate(logicalWidth / 2, logicalWidth / 2)
             .rotate(imageAngle)
-            .multiply(DOMMatrix(arrayOf(imageFlip, 0.0, 0.0, 1.0, 0.0, 0.0)))
-            .translate(-2400.0 / 2, -2400.0 / 2)
+            .scale(imageFlip, 1.0)
+            .translate(-logicalWidth / 2, -logicalWidth / 2)
 
         ctx.setTransform(ctx.getTransform().multiply(transform))
 
-        ctx.fillStyle = Colors.border
-        ctx.fillRect(0.0, 0.0, 2400.0, 2400.0)
-        ctx.fillStyle = Colors.background
-        ctx.fillRect(4.0, 4.0, 2392.0, 2392.0)
+        drawTable(ctx)
 
         ctx.fillStyle = Colors.imagePixel
         image.lines.indices.forEach { y ->
             image.lines[y].indices.forEach { x ->
                 if (image.lines[y][x] == '#') {
-                    ctx.fillRect(x * ts, y * ts, ts, ts)
+                    ctx.fillRect(x * pixelWidth, y * pixelWidth, pixelWidth, pixelWidth)
                 }
             }
         }
 
-        drawMonsters(ctx, monsters, ts)
+        drawMonsters(ctx, monsters)
 
-        drawMonsters(ctx, currentMonster, ts, currentMonsterPct)
+        drawMonsters(ctx, currentMonster, currentMonsterPct)
 
         ctx.restore()
     }
@@ -78,19 +78,18 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
     private fun drawMonsters(
         ctx: CanvasRenderingContext2D,
         monsters: Set<Pair<Int, Int>>,
-        ts: Double,
         alpha: Double = 1.0
     ) {
         ctx.fillStyle = Colors.monsterPixel
         ctx.globalAlpha = alpha
         monsters.forEach { (y, x) ->
-            ctx.fillRect(x * ts - 10, y * ts - 10, ts + 20, ts + 20)
+            ctx.fillRect((x - 0.5) * pixelWidth, (y - 0.5) * pixelWidth, pixelWidth * 2, pixelWidth * 2)
         }
 
         ctx.globalAlpha = 1 - (alpha / 2)
         ctx.fillStyle = Colors.imagePixel
         monsters.forEach { (y, x) ->
-            ctx.fillRect(x * ts, y * ts, ts, ts)
+            ctx.fillRect(x * pixelWidth, y * pixelWidth, pixelWidth, pixelWidth)
         }
     }
 
@@ -99,12 +98,13 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
         val ctx = canvas.getContext("2d") as CanvasRenderingContext2D
         ctx.save()
         val w = ctx.canvas.width
-        ctx.scale(w / 2400.0, w / 2400.0)
+        ctx.scale(w / logicalWidth, w / logicalWidth)
 
-        ctx.fillStyle = Colors.border
-        ctx.fillRect(0.0, 0.0, 2400.0, 2400.0)
-        ctx.fillStyle = Colors.background
-        ctx.fillRect(4.0, 4.0, 2392.0, 2392.0)
+        if (tiles.isNotEmpty()) {
+            tileWidth = logicalWidth / 12 // 12 is hardcoded
+            pixelWidth = tileWidth / tiles.values.first().tile.lines.size
+        }
+        drawTable(ctx)
 
 
         // tiles
@@ -135,6 +135,14 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
         ctx.restore()
     }
 
+    private fun drawTable(ctx: CanvasRenderingContext2D) {
+        val borderWidth = pixelWidth / 5
+        ctx.fillStyle = Colors.border
+        ctx.fillRect(0.0, 0.0, logicalWidth, logicalWidth)
+        ctx.fillStyle = Colors.background
+        ctx.fillRect(borderWidth, borderWidth, logicalWidth - 2 * borderWidth, logicalWidth - 2 * borderWidth)
+    }
+
     private fun drawTile(ctx: CanvasRenderingContext2D, tileInfo: TileInfo, alpha: Double, scale: Double = 0.8) {
 
         val origTransform = ctx.getTransform()
@@ -142,36 +150,36 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
 
         val tile = tileInfo.tile
 
-        val ts = 20.0 // tile size
-
         val aFg = (1.0 - alpha) * (scale - 0.8) / (0.45) + alpha
         val aBg = (-alpha) * (scale - 0.8) / (0.45) + alpha
 
+        val borderWidth = tileWidth / 100
         ctx.globalAlpha = aBg * (1.0 / tileInfo.scale)
         ctx.fillStyle = Colors.border
-        ctx.fillRect(-2.0, -2.0, 204.0, 204.0)
+        ctx.fillRect(-borderWidth, -borderWidth, tileWidth + 2 * borderWidth, tileWidth + 2 * borderWidth)
         ctx.fillStyle = Colors.tileBg
-        ctx.fillRect(0.0, 0.0, 200.0, 200.0)
+        ctx.fillRect(0.0, 0.0, tileWidth, tileWidth)
 
         ctx.fillStyle = Colors.border
         ctx.beginPath()
         ctx.moveTo(0.0, 0.0)
-        ctx.lineTo(5.0, -30.0)
-        ctx.lineTo(90.0, -30.0)
-        ctx.lineTo(100.0, 0.0)
+        ctx.lineTo(5.0 * tileWidth / 200, -30.0 * tileWidth / 200)
+        ctx.lineTo(90.0 * tileWidth / 200, -30.0 * tileWidth / 200)
+        ctx.lineTo(100.0 * tileWidth / 200, 0.0)
         ctx.fill()
 
         ctx.strokeStyle = Colors.text
         ctx.fillStyle = Colors.text
-        ctx.font = "30px Lato"
-        ctx.fillText("${tile.id}", 10.0, -5.0)
+        val fontSize = 30 * tileWidth / 200
+        ctx.font = "${fontSize.toInt()}px Lato"
+        ctx.fillText("${tile.id}", 10.0 * tileWidth / 200, -5.0 * tileWidth / 200)
 
         ctx.globalAlpha = aFg * (1.0 / tileInfo.scale)
         ctx.fillStyle = Colors.imagePixel
         (1..tile.size - 2).forEach { y ->
             (1..tile.size - 2).forEach { x ->
                 if (tile.at(y, x) == '#')
-                    ctx.fillRect(x * ts, y * ts, ts, ts)
+                    ctx.fillRect(x * pixelWidth, y * pixelWidth, pixelWidth, pixelWidth)
             }
         }
 
@@ -189,7 +197,7 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
                     ctx.fillStyle = Colors.jigsawPixel
                 else
                     ctx.fillStyle = Colors.jigsawPixelNoMatch
-                ctx.fillRect(x * ts, y * ts, ts, ts)
+                ctx.fillRect(x * pixelWidth, y * pixelWidth, pixelWidth, pixelWidth)
             }
 
 
@@ -230,12 +238,12 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
     ) {
         ctx.globalAlpha = alpha
         ctx.strokeStyle = Colors.connection
-        ctx.lineWidth = 5.0
+        ctx.lineWidth = 5.0 * tileWidth / 100
         val tr1 = tileTransform(tileInfo)
         connected.forEach { other ->
             val tr2 = tileTransform(other)
-            val start = DOMPoint(100.0, 100.0).matrixTransform(tr1)
-            val end = DOMPoint(100.0, 100.0).matrixTransform(tr2)
+            val start = DOMPoint(tileWidth / 2, tileWidth / 2).matrixTransform(tr1)
+            val end = DOMPoint(tileWidth / 2, tileWidth / 2).matrixTransform(tr2)
             ctx.beginPath()
             ctx.moveTo(start.x, start.y)
             ctx.lineTo(end.x, end.y)
@@ -245,13 +253,13 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
 
 //    private val tileTransformCache = mutableMapOf<>()
 
-    private fun tileTransform(tileInfo: TileInfo, size: Double = 200.0, scale: Double = 0.8) = DOMMatrix()
-        .translate(tileInfo.column * size, tileInfo.row * size)
-        .translate(size / 2, size / 2)
+    private fun tileTransform(tileInfo: TileInfo, scale: Double = 0.8) = DOMMatrix()
+        .translate(tileInfo.column * tileWidth, tileInfo.row * tileWidth)
+        .translate(tileWidth / 2, tileWidth / 2)
         .scale(scale)
         .rotate(tileInfo.angle)
 //        .multiply(DOMMatrix(arrayOf(tileInfo.flip, 0.0, 0.0, 1.0, 0.0, 0.0)))
         .scale(tileInfo.scale * tileInfo.flip, tileInfo.scale)
-        .translate(-size / 2, -size / 2)
+        .translate(-tileWidth / 2, -tileWidth / 2)
 
 }

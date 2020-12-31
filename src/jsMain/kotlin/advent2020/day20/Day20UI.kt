@@ -151,7 +151,6 @@ class Day20Section(
         tileCount = 0
         log.addLines("> ${tiles.size} tiles found")
         markToRedraw()
-        delayIfChecked(1000)
         log.addLines("> Searching for matches between tiles")
     }
 
@@ -184,7 +183,6 @@ class Day20Section(
         resultField.show(part1.toString())
 
 
-        delayIfChecked(1000)
         log.addLines("> Joining tiles together")
     }
 
@@ -215,7 +213,6 @@ class Day20Section(
         tileCount = 0
         log.addLines("> All tiles joined")
         markToRedraw()
-        delayIfChecked(1000)
         log.addLines("> Removing border on each tile as it's not part of image")
     }
 
@@ -287,7 +284,6 @@ class Day20Section(
         fullImage = image
         log.addLines("> Full image composed, looking for monsters. Monsters look like this:")
         log.addLines(*monster.lines().toTypedArray())
-        delayCheckbox.state = true
         markToRedraw()
     }
 
