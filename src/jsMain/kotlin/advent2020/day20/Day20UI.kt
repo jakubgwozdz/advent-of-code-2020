@@ -16,6 +16,7 @@ import kotlinx.browser.window
 import kotlinx.html.TagConsumer
 import kotlinx.html.js.canvas
 import kotlinx.html.js.div
+import org.w3c.dom.DOMMatrix
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
 
@@ -88,6 +89,10 @@ class Day20Section(
         imageAngle = 0.0
         imageOrientation = Orientation(Top, false)
         tileCount = 0
+
+        val m = DOMMatrix().translate(100.0, 100.0).scale(0.8, 0.8).translate(-100.0, -100.0)
+        log.addLines("> DOMMatrix().translate(100.0,100.0).scale(0.8,0.8).translate(-100.0,-100.0) = $m [${m.a},${m.b},${m.c},${m.d},${m.e},${m.f}]")
+
         markToRedraw()
     }
 
@@ -268,8 +273,7 @@ class Day20Section(
             markToRedraw()
         }
 
-        delayIfChecked(1500)
-        delayIfChecked(1200) { pct ->
+        delayIfChecked(1500) { pct ->
             this.scale = (1.25 - 1.0) * pct + 1.0
             markToRedraw()
         }
@@ -305,16 +309,22 @@ class Day20Section(
 
     private fun flush() {
         val image = fullImage
-        if (shouldUpdate && image == null) canvas.drawTiles(tiles, lastAdded?.let { listOf(it) } ?: emptyList(), scale)
-        if (shouldUpdate && image != null) canvas.drawImage(
-            image,
-            imageAngle,
-            imageFlip,
-            monsters,
-            currentMonster,
-            currentMonsterPct
-        )
-        shouldUpdate = false
+        if (shouldUpdate) {
+            shouldUpdate = false
+            if (image == null) canvas.drawTiles(
+                tiles,
+                lastAdded?.let { listOf(it) } ?: emptyList(),
+                scale)
+            if (image != null) canvas.drawImage(
+                image,
+                imageAngle,
+                imageFlip,
+                monsters,
+                currentMonster,
+                currentMonsterPct
+            )
+
+        }
     }
 }
 

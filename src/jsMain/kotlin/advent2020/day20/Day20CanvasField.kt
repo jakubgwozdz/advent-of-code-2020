@@ -13,7 +13,7 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
         const val border = "rgb(200,200,255)"
         const val background = "rgb(75, 101, 171)"
         const val tileBg = "rgb(34, 85, 221)"
-        const val text = "rgb(255, 255, 255)"
+        const val text = "rgb(0, 0, 0)"
         const val imagePixel = "rgb(221, 238, 255)"
         const val monsterPixel = "rgb(255, 0, 0)"
         const val jigsawPixel = "rgb(255, 176, 121)"
@@ -106,17 +106,6 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
         ctx.fillStyle = Colors.background
         ctx.fillRect(4.0, 4.0, 2392.0, 2392.0)
 
-        tiles.values
-            .filter { tileInfo -> !tileInfo.correctPlace }
-            .forEach { tileInfo ->
-                drawConnections(
-                    ctx,
-                    tileInfo,
-                    if (tileInfo.tile.id in highlighted) 1.0 else 0.2,
-                    tileInfo.matches.map { tiles[it.value]!! })
-
-                // go back to original values
-            }
 
         // tiles
         tiles.values
@@ -126,11 +115,21 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
                     tileInfo.matches.values.any { it in highlighted } -> 1.0
                     tileInfo.matches.count() == 2 -> 0.9
                     tileInfo.correctPlace -> 0.8
-                    else -> 0.3
+                    else -> 0.6
                 }
                 drawTile(ctx, tileInfo, alpha, scale)
 
-                // go back to original values
+            }
+
+        tiles.values
+            .filter { tileInfo -> !tileInfo.correctPlace }
+            .forEach { tileInfo ->
+                drawConnections(
+                    ctx,
+                    tileInfo,
+                    if (tileInfo.tile.id in highlighted) 1.0 else 0.2,
+                    tileInfo.matches.map { tiles[it.value]!! })
+
             }
 
         ctx.restore()
@@ -154,14 +153,15 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
         ctx.fillStyle = Colors.tileBg
         ctx.fillRect(0.0, 0.0, 200.0, 200.0)
 
-        ctx.strokeStyle = Colors.border
+        ctx.fillStyle = Colors.border
         ctx.beginPath()
         ctx.moveTo(0.0, 0.0)
         ctx.lineTo(5.0, -30.0)
         ctx.lineTo(90.0, -30.0)
         ctx.lineTo(100.0, 0.0)
-        ctx.stroke()
+        ctx.fill()
 
+        ctx.strokeStyle = Colors.text
         ctx.fillStyle = Colors.text
         ctx.font = "30px Lato"
         ctx.fillText("${tile.id}", 10.0, -5.0)
@@ -243,13 +243,15 @@ class Day20CanvasField(val canvas: HTMLCanvasElement) {
         }
     }
 
+//    private val tileTransformCache = mutableMapOf<>()
+
     private fun tileTransform(tileInfo: TileInfo, size: Double = 200.0, scale: Double = 0.8) = DOMMatrix()
         .translate(tileInfo.column * size, tileInfo.row * size)
         .translate(size / 2, size / 2)
         .scale(scale)
         .rotate(tileInfo.angle)
-        .multiply(DOMMatrix(arrayOf(tileInfo.flip, 0.0, 0.0, 1.0, 0.0, 0.0)))
-        .scale(tileInfo.scale)
+//        .multiply(DOMMatrix(arrayOf(tileInfo.flip, 0.0, 0.0, 1.0, 0.0, 0.0)))
+        .scale(tileInfo.scale * tileInfo.flip, tileInfo.scale)
         .translate(-size / 2, -size / 2)
 
 }
