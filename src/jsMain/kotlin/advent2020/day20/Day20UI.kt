@@ -16,9 +16,10 @@ import kotlinx.browser.window
 import kotlinx.html.TagConsumer
 import kotlinx.html.js.canvas
 import kotlinx.html.js.div
-import org.w3c.dom.DOMMatrix
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
+import kotlin.time.Duration
+import kotlin.time.TimeSource.Monotonic
 
 val day20puzzleContext by lazy { PuzzleContext(readResourceInCurrentPackage()) }
 val day20puzzleInfo = PuzzleInfo("day20", "Jurassic Jigsaw", 20, 2020, animation = true)
@@ -75,6 +76,10 @@ class Day20Section(
     private var currentMonsterPct = 0.0
     private var lastAdded: Long? = null
 
+    private var frameCount = 0
+    private var timeSpentDrawing = Duration.ZERO
+    private var startTime = Monotonic.markNow()
+
     override suspend fun starting() {
         super<GenericTaskSection>.starting()
         result2Field.hide()
@@ -90,8 +95,9 @@ class Day20Section(
         imageOrientation = Orientation(Top, false)
         tileCount = 0
 
-        val m = DOMMatrix().translate(100.0, 100.0).scale(0.8, 0.8).translate(-100.0, -100.0)
-        log.addLines("> DOMMatrix().translate(100.0,100.0).scale(0.8,0.8).translate(-100.0,-100.0) = $m [${m.a},${m.b},${m.c},${m.d},${m.e},${m.f}]")
+        frameCount = 0
+        timeSpentDrawing = Duration.ZERO
+        startTime = Monotonic.markNow()
 
         markToRedraw()
     }
@@ -103,6 +109,7 @@ class Day20Section(
             .fold(1L) { acc, tileInfo -> acc * tileInfo.tile.id }
             .let { resultField.show(it.toString()) }
         log.addLines("> Found $result pixels that are not monsters")
+        log.addLines("> Animation took ${startTime.elapsedNow()}, $frameCount frames was drawn, drawing took $timeSpentDrawing")
         result2Field.show(result)
         lastAdded = null
         markToRedraw()
@@ -310,6 +317,8 @@ class Day20Section(
     private fun flush() {
         val image = fullImage
         if (shouldUpdate) {
+            frameCount++
+            val timer = Monotonic.markNow()
             shouldUpdate = false
             if (image == null) canvas.drawTiles(
                 tiles,
@@ -323,7 +332,7 @@ class Day20Section(
                 currentMonster,
                 currentMonsterPct
             )
-
+            timeSpentDrawing += timer.elapsedNow()
         }
     }
 }
